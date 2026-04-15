@@ -171,7 +171,7 @@ tr.selected-row{background-color:#fff8e1 !important;border-left:4px solid var(--
 <i class="fa-solid fa-scale-unbalanced" style="color:var(--danger);"></i> Çizim ve Metraj Tablosu Kıyaslama
 </h2>
 <p style="font-size:13px; color:var(--text-secondary); margin-bottom: 20px;">
-Adım 1: DXF dosyasını yükleyin. Adım 2: Yazı ve Lejant katmanlarını seçin. Sistem blokları otomatik patlatır, ATTRIB verilerini çözer ve metrajı Excel olarak sunar.
+Adım 1: DXF dosyasını yükleyin. Adım 2: Yazı ve Lejant katmanlarını seçin. Sistem blokları (ATTRIB) nokta atışı okuyarak ve yazıları gruplayarak metrajla hatasız kıyaslar.
 </p>
 
 <div class="input-group" style="margin-bottom: 20px;" id="dxfUploadSection">
@@ -372,7 +372,9 @@ document.getElementById('excelFile').addEventListener('change', function(e) { do
 // 2. SUPABASE (SaaS) BAĞLANTISI VE KORUMALI BAŞLATMA
 // ==========================================
 const SUPABASE_URL = 'https://hgvoduwiwwizxkdqfmtt.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_3cWel6iXjo9xYu0fpHVaaA_4kCY07ON';
+
+// LÜTFEN SUPABASE'DEN ALDIĞIN "eyJ" İLE BAŞLAYAN ANAHTARI BURAYA YAPIŞTIR:
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhndm9kdXdpd3dpenhrZHFmbXR0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyMzAxODIsImV4cCI6MjA5MTgwNjE4Mn0.j1027SNJ3C6wHlpLjFQtcuRcP0XUcu7I-_zUO3_8l7w';
 
 let supabaseClient = null;
 let currentUser = null;
@@ -384,7 +386,7 @@ window.onload = async function() {
 document.getElementById('hybridLoader').style.display = 'flex';
 
 try {
-if (window.supabase) {
+if (window.supabase && SUPABASE_KEY.startsWith('eyJ')) {
 supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const { data: { session }, error } = await supabaseClient.auth.getSession();
 
@@ -397,11 +399,12 @@ document.getElementById('authView').style.display = 'flex';
 document.getElementById('appView').style.display = 'none';
 }
 } else {
-showToast("İnternet bağlantısı zayıf veya kütüphane yüklenemedi.", "warning");
+document.getElementById('authView').style.display = 'flex';
+document.getElementById('appView').style.display = 'none';
 }
 } catch(err) {
-console.error("Supabase Init Error:", err);
-showToast("Sunucuya bağlanılamadı. Lütfen Test Modu ile giriş yapın.", "error");
+document.getElementById('authView').style.display = 'flex';
+document.getElementById('appView').style.display = 'none';
 } finally {
 document.getElementById('hybridLoader').style.display = 'none';
 }
@@ -415,7 +418,13 @@ showToast("Test modunda giriş yapıldı. Bulut kaydı pasiftir.", "warning");
 };
 
 window.doRegister = async function() {
+if (!SUPABASE_KEY.startsWith('eyJ')) {
+showToast("HATA: API Anahtarı yanlış! Supabase'den 'eyJ' ile başlayan anon key'i alıp koda yapıştırmalısın.", "error");
+return;
+}
+
 if(!supabaseClient) { showToast("Sunucu hazır değil. Lütfen 'Test Modu'nu kullanın.", "error"); return; }
+
 const email = document.getElementById('authEmail').value;
 const password = document.getElementById('authPassword').value;
 
@@ -447,7 +456,13 @@ document.getElementById('hybridLoader').style.display = 'none';
 }
 
 window.doLogin = async function() {
+if (!SUPABASE_KEY.startsWith('eyJ')) {
+showToast("HATA: API Anahtarı yanlış! Supabase'den 'eyJ' ile başlayan anon key'i alıp koda yapıştırmalısın.", "error");
+return;
+}
+
 if(!supabaseClient) { showToast("Sunucu hazır değil. Lütfen 'Test Modu'nu kullanın.", "error"); return; }
+
 const email = document.getElementById('authEmail').value;
 const password = document.getElementById('authPassword').value;
 if(!email || !password) { showToast("E-posta ve şifre zorunludur.", "error"); return; }
@@ -487,14 +502,9 @@ document.getElementById('appView').style.display = 'block';
 document.getElementById('displayUser').innerText = user.email.split('@')[0];
 }
 
-// ==========================================
+// ----------------------------------------------------
 // 3. DXF VE ATTRIB BLOK OKUYUCU (YAPAY ZEKA)
-// ==========================================
-function cleanDxfText(val) {
-let s = val.replace(/\\P/g, ' '); s = s.replace(/\\[A-Za-z0-9~][^;]*;/g, ''); s = s.replace(/[{}]/g, '');
-s = s.replace(/%%C/gi, 'Ø'); s = s.replace(/\\U\+2205/gi, 'Ø'); s = s.replace(/\\U\+00D8/gi, 'Ø'); return s.trim();
-}
-
+// ----------------------------------------------------
 window.parseDxfLayers = function(input) {
 if (!input.files.length) return;
 document.getElementById('dxfCompareFileName').innerText = input.files[0].name;
@@ -564,13 +574,6 @@ document.getElementById('hybridLoader').style.display = 'none';
 showToast("DXF başarıyla okundu.", "success");
 };
 reader.readAsText(input.files[0]);
-}
-
-function isSamePoz(p1, p2) {
-let cp1 = p1.replace(/[\(\)\[\]]/g, '').trim(); let cp2 = p2.replace(/[\(\)\[\]]/g, '').trim();
-if (cp1 === cp2) return true;
-if (!isNaN(cp1) && !isNaN(cp2) && parseInt(cp1) === parseInt(cp2)) return true;
-return false;
 }
 
 window.runDxfComparison = function() {
@@ -957,3 +960,4 @@ window.getCustomStocksArray = function() { let customArr = []; const rows = docu
 </script>
 </body>
 </html>
+
