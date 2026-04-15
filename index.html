@@ -15,7 +15,7 @@
 body{font-family:'Roboto',sans-serif;background-color:var(--bg-main);color:var(--text-primary);margin:0;min-height:100vh;}
 body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background-image:url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20L0 40h40L20 20zm0 0L40 0H0l20 20z' fill='%23d4af37' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E");pointer-events:none;z-index:-1;}
 
-/* AUTH EKRANI */
+/* AUTH EKRANI GÜNCELLEMELERİ */
 #authView{display:flex;justify-content:center;align-items:center;min-height:100vh;background:linear-gradient(135deg,#2c3e50,#34495e);position:fixed;top:0;left:0;width:100%;z-index:10000;}
 .auth-card{background:white;padding:40px 30px;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,0.3);width:100%;max-width:400px;text-align:center;}
 .auth-logo{width:80px;margin-bottom:15px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.2));}
@@ -27,6 +27,7 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background-
 .auth-btn:hover{transform:translateY(-2px);box-shadow:0 5px 15px rgba(212,175,55,0.4);}
 .auth-btn-test{background:#7f8c8d; color:white; margin-top: 15px; border:none;}
 .auth-btn-test:hover{background:#95a5a6; box-shadow:none; transform:translateY(0);}
+
 #loginForm, #registerForm { width: 100%; transition: 0.3s; }
 #registerForm { display: none; }
 .toggle-link { color: var(--gold); cursor: pointer; font-size: 13px; font-weight: bold; margin-top: 15px; display: inline-block; transition: 0.2s; }
@@ -126,14 +127,18 @@ tr.selected-row{background-color:#fff8e1 !important;border-left:4px solid var(--
 .btn-pdf{background-color:#c0392b;} .btn-pdf:hover{background-color:#a93226;}
 .btn-finance{background-color:#2980b9;} .btn-finance:hover{background-color:#1f618d;}
 .btn-archive{background-color:#8e44ad;} .btn-archive:hover{background-color:#732d91;}
+
+/* Z-INDEX DÜZELTMELERİ */
 .loader-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.9);z-index:99999;display:none;flex-direction:column;align-items:center;justify-content:center;backdrop-filter:blur(5px);}
 .loader-content{background:white;padding:40px;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,0.1);text-align:center;border:1px solid #eee;}
 .spinner{width:50px;height:50px;border:4px solid #f3f3f3;border-top:4px solid var(--gold);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 20px auto;}
 @keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
+
 .admin-modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(44,62,80,0.8);z-index:50000;display:none;justify-content:center;align-items:center;backdrop-filter:blur(3px);}
 .admin-content{background:white;width:95%;max-width:1200px;max-height:90%;border-radius:12px;padding:30px;box-shadow:0 15px 50px rgba(0,0,0,0.2);overflow-y:auto;}
 .close-btn{float:right;font-size:24px;cursor:pointer;color:var(--text-secondary);transition:0.3s;}
 .close-btn:hover{color:var(--danger);}
+
 #toastContainer{position:fixed;top:20px;right:20px;z-index:999999;display:flex;flex-direction:column;gap:10px;pointer-events:none;}
 .toast{pointer-events:auto;padding:15px 25px;background:white;border-left:5px solid var(--gold);border-radius:8px;box-shadow:0 10px 25px rgba(0,0,0,0.1);display:flex;align-items:center;gap:12px;font-weight:500;font-size:14px;animation:slideInRight 0.3s ease forwards;min-width:250px;color:var(--text-primary);}
 .toast.error{border-left-color:var(--danger);}
@@ -265,131 +270,6 @@ tr.selected-row{background-color:#fff8e1 !important;border-left:4px solid var(--
 </div>
 </nav>
 
-<div id="dxfCompareModal" class="admin-modal">
-<div class="admin-content">
-<i class="fa-solid fa-xmark close-btn" onclick="document.getElementById('dxfCompareModal').style.display='none'"></i>
-<h2 style="color:var(--secondary); margin-top:0; border-bottom:2px solid var(--danger); padding-bottom:15px;">
-<i class="fa-solid fa-scale-unbalanced" style="color:var(--danger);"></i> Çizim ve Metraj Tablosu Kıyaslama
-</h2>
-<p style="font-size:13px; color:var(--text-secondary); margin-bottom: 20px;">
-Adım 1: DXF dosyasını yükleyin. Adım 2: Yazı ve Lejant katmanlarını seçin. Sistem blokları (ATTRIB) nokta atışı okuyarak ve yazıları gruplayarak metrajla hatasız kıyaslar.
-</p>
-
-<div class="input-group" style="margin-bottom: 20px;" id="dxfUploadSection">
-<div class="file-upload-wrapper">
-<input type="file" id="dxfCompareFile" accept=".dxf" class="file-upload-input" onchange="parseDxfLayers(this)" />
-<label for="dxfCompareFile" class="file-upload-label" style="border-color: var(--danger); color: var(--danger); padding: 15px;">
-<i class="fa-solid fa-upload"></i> <span id="dxfCompareFileName">DXF Dosyası Yükle (Katmanları Okumak İçin)</span>
-</label>
-</div>
-</div>
-
-<div id="dxfLayerSelectSection" style="display:none;">
-<div class="control-grid" style="grid-template-columns: 1fr 1fr; gap:15px; margin-bottom: 25px; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #ccc;">
-<div class="input-group">
-<label>Yazı Katmanı (Text/Block Layer)</label>
-<select id="selTextLayer"></select>
-</div>
-<div class="input-group">
-<label>Lejant Katmanı (Legend/Table Layer)</label>
-<select id="selLegendLayer"></select>
-</div>
-</div>
-<button class="primary-btn" style="background:var(--danger); width:100%; margin-bottom: 20px;" onclick="runDxfComparison()"><i class="fa-solid fa-cogs"></i> KIYASLA VE EXCEL'E AKTAR</button>
-</div>
-
-<div class="table-wrapper" style="max-height: 350px; overflow-y:auto; border: 1px solid var(--border); display:none;" id="dxfResultsSection">
-<table id="dxfCompareTable">
-<thead>
-<tr>
-<th style="background:#34495e;">Poz</th>
-<th style="background:#34495e;">Çap</th>
-<th style="background:#2980b9;">Tablo Adet/Boy</th>
-<th style="background:#8e44ad;">Yazı Adet/Boy</th>
-<th style="background:#34495e;">Durum</th>
-</tr>
-</thead>
-<tbody></tbody>
-</table>
-</div>
-</div>
-</div>
-
-<div id="superAdminModal" class="admin-modal">
-<div class="admin-content">
-<i class="fa-solid fa-xmark close-btn" onclick="document.getElementById('superAdminModal').style.display='none'"></i>
-<h2 style="color:var(--danger); margin-top:0; border-bottom:1px solid var(--border); padding-bottom:15px;"><i class="fa-solid fa-crown"></i> Süper Admin: Tüm Firmalar Raporu</h2>
-<div class="table-wrapper" style="max-height: 400px; overflow-y:auto;">
-<table id="superAdminTable">
-<thead><tr><th style="text-align:left;">Firma Adı</th><th style="text-align:center;">Paket</th><th style="text-align:center;">Kullanıcı</th><th style="text-align:center;">Toplam İşlenen (Ton)</th><th style="text-align:center;">Kazanılan (₺)</th></tr></thead>
-<tbody><tr><td colspan="5" style="text-align:center; padding:20px;">Yükleniyor...</td></tr></tbody>
-</table>
-</div>
-</div>
-</div>
-
-<div id="globalDepoModal" class="admin-modal">
-<div class="admin-content" style="max-width: 850px;">
-<i class="fa-solid fa-xmark close-btn" onclick="document.getElementById('globalDepoModal').style.display='none'"></i>
-<h2 style="color:var(--secondary); margin-top:0; border-bottom:1px solid var(--border); padding-bottom:15px;">
-<i class="fa-solid fa-warehouse" style="color:var(--success);"></i> Şantiye Sanal Deposu
-</h2>
-<div class="control-grid" style="grid-template-columns: 1.5fr 1fr 1fr auto; gap:15px; margin-bottom: 25px; align-items: end; background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid var(--border);">
-<div class="input-group">
-<label>Demir Çapı Ekle</label>
-<select id="addDepoProfile"><option value="0.395">Ø8 mm</option><option value="0.617">Ø10 mm</option><option value="0.888">Ø12 mm</option><option value="1.208">Ø14 mm</option><option value="1.580">Ø16 mm</option><option value="1.998">Ø18 mm</option><option value="2.466">Ø20 mm</option><option value="2.984">Ø22 mm</option><option value="3.551">Ø24 mm</option><option value="3.853">Ø25 mm</option><option value="4.834">Ø28 mm</option><option value="5.549">Ø30 mm</option><option value="6.313">Ø32 mm</option></select>
-</div>
-<div class="input-group">
-<label>Boy (mm)</label>
-<input type="text" id="addDepoLen" placeholder="Örn: 3.500" oninput="formatInput(this)">
-</div>
-<div class="input-group">
-<label>Adet</label>
-<input type="text" id="addDepoQty" placeholder="Örn: 15" oninput="formatInput(this)">
-</div>
-<div class="input-group">
-<button class="primary-btn" onclick="addGlobalDepoItem()" style="margin:0; height:47px; padding: 0 20px;"><i class="fa-solid fa-plus"></i> Ekle</button>
-</div>
-</div>
-<div class="table-wrapper" style="max-height: 400px; overflow-y:auto;">
-<table id="globalDepoTable">
-<thead><tr><th style="text-align:left;">Eklenme Tarihi</th><th style="text-align:center;">Çap</th><th style="text-align:center;">Boy (mm)</th><th style="text-align:center;">Adet</th><th style="text-align:center;">İşlem</th></tr></thead>
-<tbody><tr><td colspan="5" style="text-align:center; padding:20px;">Yükleniyor...</td></tr></tbody>
-</table>
-</div>
-</div>
-</div>
-
-<div id="sanalDepoModal" class="admin-modal">
-<div class="admin-content" style="max-width: 600px;">
-<i class="fa-solid fa-xmark close-btn" onclick="document.getElementById('sanalDepoModal').style.display='none'"></i>
-<h3 style="color:var(--secondary); margin-top:0; border-bottom:1px solid var(--border); padding-bottom:15px;"><i class="fa-solid fa-list-check" style="color:var(--gold);"></i> Depodan Seç</h3>
-<p style="font-size:13px; color:var(--text-secondary); margin-bottom: 20px;">Aşağıda seçili demir çapına ait kullanılabilir şantiye fireleriniz listelenmiştir.</p>
-<div class="table-wrapper" style="max-height: 300px; overflow-y:auto; margin-bottom: 20px;">
-<table id="depoTable">
-<thead><tr><th style="text-align:left;">Boy (mm)</th><th style="text-align:center;">Depodaki Adet</th><th style="text-align:center;">Kullanılacak Adet</th></tr></thead>
-<tbody><tr><td colspan="3" style="text-align:center; padding:20px;"><i class="fa-solid fa-spinner fa-spin"></i> Depo aranıyor...</td></tr></tbody>
-</table>
-</div>
-<button class="primary-btn" onclick="transferFromDepo()" style="margin-top:0; height:45px;">SEÇİLENLERİ LİSTEYE AKTAR</button>
-</div>
-</div>
-
-<div id="archiveModal" class="admin-modal">
-<div class="admin-content">
-<i class="fa-solid fa-xmark close-btn" onclick="document.getElementById('archiveModal').style.display='none'"></i>
-<h2 style="color:var(--secondary); margin-top:0; border-bottom:1px solid var(--border); padding-bottom:15px;"><i class="fa-solid fa-box-archive" style="color:var(--gold);"></i> Geçmiş Analiz Arşivi</h2>
-<div class="table-wrapper" style="max-height: 400px; overflow-y:auto;">
-<table id="archiveTable">
-<thead><tr><th style="text-align:left;">Tarih</th><th style="text-align:center;">Çap</th><th style="text-align:center;">Mahal</th><th style="text-align:center;">Müh. Tonaj</th><th style="text-align:center;">Fire Ton</th><th style="text-align:center;">Fire %</th><th style="text-align:center;">Kazanç</th><th style="text-align:center;">İşlem</th></tr></thead>
-<tbody><tr><td colspan="8" style="text-align:center; padding:20px;">Yükleniyor...</td></tr></tbody>
-</table>
-</div>
-</div>
-</div>
-
-<div id="financeModal" class="admin-modal"><div class="admin-content" style="max-width:650px; height:auto; overflow:hidden; padding: 35px;"><i class="fa-solid fa-xmark close-btn" onclick="document.getElementById('financeModal').style.display='none'"></i><h3 style="color:var(--secondary); margin-top:0; border-bottom:2px solid var(--bg-main); padding-bottom:15px;"><i class="fa-solid fa-money-bill-trend-up" style="color:var(--gold);"></i> Finansal Analiz (Özel Boy)</h3><div class="control-grid" style="grid-template-columns: 1fr 1fr 1fr; gap:15px; margin-bottom: 25px;"><div class="input-group"><label>Demir Ton Fiyatı (₺)</label><input type="text" id="priceIronTl" value="21.500,00" oninput="formatCurrencyInput(this); calculateFinance()"></div><div class="input-group"><label>Özel Boy Farkı (₺/Ton)</label><input type="text" id="priceSpecialDiffTl" value="700,00" oninput="formatCurrencyInput(this); calculateFinance()"></div><div class="input-group"><label>Hurda Ton Fiyatı (₺)</label><input type="text" id="priceScrapTl" value="11.500,00" oninput="formatCurrencyInput(this); calculateFinance()"></div></div><div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #eee;"><div class="widget-row"><span>Standart Kesim Maliyeti (Net):</span><span id="modCostStd" class="widget-val">0 ₺</span></div><div class="widget-row"><span>Özel Boy Kesim Maliyeti (Net):</span><span id="modCostSpec" class="widget-val">0 ₺</span></div><div style="border-top: 1px dashed #ccc; margin: 15px 0; padding-top: 15px; text-align: center;"><span style="font-size:14px; display:block; color:var(--text-secondary); margin-bottom: 5px;">KAZANÇ DURUMU</span><strong style="font-size:28px; font-weight:900;" id="modCostSavings">0 ₺</strong></div></div></div></div>
-
 <div class="container">
 <div class="card">
 <div class="card-header"><i class="fa-solid fa-sliders"></i> Analiz Parametreleri</div>
@@ -462,6 +342,143 @@ Adım 1: DXF dosyasını yükleyin. Adım 2: Yazı ve Lejant katmanlarını seç
 </div>
 </div>
 
+<div id="dxfCompareModal" class="admin-modal">
+<div class="admin-content">
+<i class="fa-solid fa-xmark close-btn" onclick="document.getElementById('dxfCompareModal').style.display='none'"></i>
+<h2 style="color:var(--secondary); margin-top:0; border-bottom:2px solid var(--danger); padding-bottom:15px;">
+<i class="fa-solid fa-scale-unbalanced" style="color:var(--danger);"></i> Çizim ve Metraj Tablosu Kıyaslama
+</h2>
+<p style="font-size:13px; color:var(--text-secondary); margin-bottom: 20px;">
+Adım 1: DXF dosyasını yükleyin. Adım 2: Yazı ve Lejant katmanlarını seçin. Sistem blokları (ATTRIB) nokta atışı okuyarak ve yazıları gruplayarak metrajla hatasız kıyaslar.
+</p>
+<div class="input-group" style="margin-bottom: 20px;" id="dxfUploadSection">
+<div class="file-upload-wrapper">
+<input type="file" id="dxfCompareFile" accept=".dxf" class="file-upload-input" onchange="parseDxfLayers(this)" />
+<label for="dxfCompareFile" class="file-upload-label" style="border-color: var(--danger); color: var(--danger); padding: 15px;">
+<i class="fa-solid fa-upload"></i> <span id="dxfCompareFileName">DXF Dosyası Yükle (Katmanları Okumak İçin)</span>
+</label>
+</div>
+</div>
+<div id="dxfLayerSelectSection" style="display:none;">
+<div class="control-grid" style="grid-template-columns: 1fr 1fr; gap:15px; margin-bottom: 25px; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #ccc;">
+<div class="input-group">
+<label>Yazı Katmanı (Text/Block Layer)</label>
+<select id="selTextLayer"></select>
+</div>
+<div class="input-group">
+<label>Lejant Katmanı (Legend/Table Layer)</label>
+<select id="selLegendLayer"></select>
+</div>
+</div>
+<button class="primary-btn" style="background:var(--danger); width:100%; margin-bottom: 20px;" onclick="runDxfComparison()"><i class="fa-solid fa-cogs"></i> KIYASLA VE EXCEL'E AKTAR</button>
+</div>
+<div class="table-wrapper" style="max-height: 350px; overflow-y:auto; border: 1px solid var(--border); display:none;" id="dxfResultsSection">
+<table id="dxfCompareTable">
+<thead>
+<tr>
+<th style="background:#34495e;">Poz</th>
+<th style="background:#34495e;">Çap</th>
+<th style="background:#2980b9;">Tablo Adet/Boy</th>
+<th style="background:#8e44ad;">Yazı Adet/Boy</th>
+<th style="background:#34495e;">Durum</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+</div>
+</div>
+</div>
+
+<div id="superAdminModal" class="admin-modal">
+<div class="admin-content">
+<i class="fa-solid fa-xmark close-btn" onclick="document.getElementById('superAdminModal').style.display='none'"></i>
+<h2 style="color:var(--danger); margin-top:0; border-bottom:1px solid var(--border); padding-bottom:15px;"><i class="fa-solid fa-crown"></i> Süper Admin: Tüm Firmalar Raporu</h2>
+<div class="table-wrapper" style="max-height: 400px; overflow-y:auto;">
+<table id="superAdminTable">
+<thead><tr><th style="text-align:left;">Firma Adı</th><th style="text-align:center;">Paket</th><th style="text-align:center;">Kullanıcı</th><th style="text-align:center;">Toplam İşlenen (Ton)</th><th style="text-align:center;">Kazanılan (₺)</th></tr></thead>
+<tbody><tr><td colspan="5" style="text-align:center; padding:20px;">Yükleniyor...</td></tr></tbody>
+</table>
+</div>
+</div>
+</div>
+
+<div id="globalDepoModal" class="admin-modal">
+<div class="admin-content" style="max-width: 850px;">
+<i class="fa-solid fa-xmark close-btn" onclick="document.getElementById('globalDepoModal').style.display='none'"></i>
+<h2 style="color:var(--secondary); margin-top:0; border-bottom:1px solid var(--border); padding-bottom:15px;">
+<i class="fa-solid fa-warehouse" style="color:var(--success);"></i> Şantiye Sanal Deposu (<span id="globalDepoCompany">Yükleniyor...</span>)
+</h2>
+<div class="control-grid" style="grid-template-columns: 1.5fr 1fr 1fr auto; gap:15px; margin-bottom: 25px; align-items: end; background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid var(--border);">
+<div class="input-group">
+<label>Demir Çapı Ekle</label>
+<select id="addDepoProfile"><option value="0.395">Ø8 mm</option><option value="0.617">Ø10 mm</option><option value="0.888">Ø12 mm</option><option value="1.208">Ø14 mm</option><option value="1.580">Ø16 mm</option><option value="1.998">Ø18 mm</option><option value="2.466">Ø20 mm</option><option value="2.984">Ø22 mm</option><option value="3.551">Ø24 mm</option><option value="3.853">Ø25 mm</option><option value="4.834">Ø28 mm</option><option value="5.549">Ø30 mm</option><option value="6.313">Ø32 mm</option></select>
+</div>
+<div class="input-group">
+<label>Boy (mm)</label>
+<input type="text" id="addDepoLen" placeholder="Örn: 3.500" oninput="formatInput(this)">
+</div>
+<div class="input-group">
+<label>Adet</label>
+<input type="text" id="addDepoQty" placeholder="Örn: 15" oninput="formatInput(this)">
+</div>
+<div class="input-group">
+<button class="primary-btn" onclick="addGlobalDepoItem()" style="margin:0; height:47px; padding: 0 20px;"><i class="fa-solid fa-plus"></i> Ekle</button>
+</div>
+</div>
+<div class="table-wrapper" style="max-height: 400px; overflow-y:auto;">
+<table id="globalDepoTable">
+<thead><tr><th style="text-align:left;">Eklenme Tarihi</th><th style="text-align:center;">Çap</th><th style="text-align:center;">Boy (mm)</th><th style="text-align:center;">Adet</th><th style="text-align:center;">İşlem</th></tr></thead>
+<tbody><tr><td colspan="5" style="text-align:center; padding:20px;">Yükleniyor...</td></tr></tbody>
+</table>
+</div>
+</div>
+</div>
+
+<div id="sanalDepoModal" class="admin-modal">
+<div class="admin-content" style="max-width: 600px;">
+<i class="fa-solid fa-xmark close-btn" onclick="document.getElementById('sanalDepoModal').style.display='none'"></i>
+<h3 style="color:var(--secondary); margin-top:0; border-bottom:1px solid var(--border); padding-bottom:15px;"><i class="fa-solid fa-list-check" style="color:var(--gold);"></i> Depodan Seç</h3>
+<p style="font-size:13px; color:var(--text-secondary); margin-bottom: 20px;">Aşağıda seçili demir çapına ait kullanılabilir şantiye fireleriniz listelenmiştir.</p>
+<div class="table-wrapper" style="max-height: 300px; overflow-y:auto; margin-bottom: 20px;">
+<table id="depoTable">
+<thead><tr><th style="text-align:left;">Boy (mm)</th><th style="text-align:center;">Depodaki Adet</th><th style="text-align:center;">Kullanılacak Adet</th></tr></thead>
+<tbody><tr><td colspan="3" style="text-align:center; padding:20px;"><i class="fa-solid fa-spinner fa-spin"></i> Depo aranıyor...</td></tr></tbody>
+</table>
+</div>
+<button class="primary-btn" onclick="transferFromDepo()" style="margin-top:0; height:45px;">SEÇİLENLERİ LİSTEYE AKTAR</button>
+</div>
+</div>
+
+<div id="archiveModal" class="admin-modal">
+<div class="admin-content">
+<i class="fa-solid fa-xmark close-btn" onclick="document.getElementById('archiveModal').style.display='none'"></i>
+<h2 style="color:var(--secondary); margin-top:0; border-bottom:1px solid var(--border); padding-bottom:15px;"><i class="fa-solid fa-box-archive" style="color:var(--gold);"></i> Geçmiş Analiz Arşivi</h2>
+<div class="table-wrapper" style="max-height: 400px; overflow-y:auto;">
+<table id="archiveTable">
+<thead><tr><th style="text-align:left;">Tarih</th><th style="text-align:center;">Çap</th><th style="text-align:center;">Mahal</th><th style="text-align:center;">Müh. Tonaj</th><th style="text-align:center;">Fire Ton</th><th style="text-align:center;">Fire %</th><th style="text-align:center;">Kazanç</th><th style="text-align:center;">İşlem</th></tr></thead>
+<tbody><tr><td colspan="8" style="text-align:center; padding:20px;">Yükleniyor...</td></tr></tbody>
+</table>
+</div>
+</div>
+</div>
+
+<div id="financeModal" class="admin-modal">
+<div class="admin-content" style="max-width:650px; height:auto; overflow:hidden; padding: 35px;">
+<i class="fa-solid fa-xmark close-btn" onclick="document.getElementById('financeModal').style.display='none'"></i>
+<h3 style="color:var(--secondary); margin-top:0; border-bottom:2px solid var(--bg-main); padding-bottom:15px;"><i class="fa-solid fa-money-bill-trend-up" style="color:var(--gold);"></i> Finansal Analiz (Özel Boy)</h3>
+<div class="control-grid" style="grid-template-columns: 1fr 1fr 1fr; gap:15px; margin-bottom: 25px;">
+<div class="input-group"><label>Demir Ton Fiyatı (₺)</label><input type="text" id="priceIronTl" value="21.500,00" oninput="formatCurrencyInput(this); calculateFinance()"></div>
+<div class="input-group"><label>Özel Boy Farkı (₺/Ton)</label><input type="text" id="priceSpecialDiffTl" value="700,00" oninput="formatCurrencyInput(this); calculateFinance()"></div>
+<div class="input-group"><label>Hurda Ton Fiyatı (₺)</label><input type="text" id="priceScrapTl" value="11.500,00" oninput="formatCurrencyInput(this); calculateFinance()"></div>
+</div>
+<div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #eee;">
+<div class="widget-row"><span>Standart Kesim Maliyeti (Net):</span><span id="modCostStd" class="widget-val">0 ₺</span></div>
+<div class="widget-row"><span>Özel Boy Kesim Maliyeti (Net):</span><span id="modCostSpec" class="widget-val">0 ₺</span></div>
+<div style="border-top: 1px dashed #ccc; margin: 15px 0; padding-top: 15px; text-align: center;"><span style="font-size:14px; display:block; color:var(--text-secondary); margin-bottom: 5px;">KAZANÇ DURUMU</span><strong style="font-size:28px; font-weight:900;" id="modCostSavings">0 ₺</strong></div>
+</div>
+</div>
+</div>
+
 <script>
 // ==========================================
 // 1. GENEL YARDIMCI FONKSİYONLAR VE FORMATLAR
@@ -497,8 +514,6 @@ document.getElementById('excelFile').addEventListener('change', function(e) { do
 // 2. SUPABASE (SaaS) BAĞLANTISI VE KORUMALI BAŞLATMA
 // ==========================================
 const SUPABASE_URL = 'https://hgvoduwiwwizxkdqfmtt.supabase.co';
-
-// LÜTFEN SUPABASE'DEN ALDIĞIN "eyJ" İLE BAŞLAYAN ANAHTARI BURAYA YAPIŞTIR:
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhndm9kdXdpd3dpenhrZHFmbXR0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyMzAxODIsImV4cCI6MjA5MTgwNjE4Mn0.j1027SNJ3C6wHlpLjFQtcuRcP0XUcu7I-_zUO3_8l7w';
 
 let supabaseClient = null;
@@ -506,7 +521,7 @@ let currentUser = null;
 let currentCompanyId = null;
 let currentRole = 'user';
 let g_companyPlan = 'pusula';
-let g_companyLimit = 100; // Pusula = 100 Ton, Santiye/Kurumsal = Sınırsız
+let g_companyLimit = 100;
 let g_usedTonnage = 0;
 
 let globalDxfEntities = [];
@@ -559,16 +574,12 @@ document.getElementById('dashDisplayUser').innerText = "TEST MODU";
 showToast("Test modunda giriş yapıldı. Bulut kaydı pasiftir.", "warning");
 };
 
-// ==========================================
-// YENİ: SaaS VERİ ÇEKME VE KOTA HESAPLAMA MANTIĞI
-// ==========================================
 async function fetchSaaSDataAndInit(user) {
 currentUser = user;
 document.getElementById('authView').style.display = 'none';
 document.getElementById('appView').style.display = 'none';
 
 try {
-// Profili ve Bağlı Olduğu Firmayı Bul
 const { data: profileData } = await supabaseClient.from('profiles').select('*, companies(*)').eq('id', user.id).single();
 
 if(profileData) {
@@ -579,23 +590,20 @@ let company = profileData.companies;
 document.getElementById('dashWelcomeText').innerText = `Hoş Geldiniz, ${company.name}`;
 document.getElementById('dashDisplayUser').innerText = profileData.full_name;
 
-// Eğer Süper Admin ise butonu göster
 if(currentRole === 'admin') {
 document.getElementById('btnSuperAdmin').style.display = 'flex';
 }
 
-// Plan Bilgilerini Ayarla
 g_companyPlan = company.subscription_plan;
 document.getElementById('dashPlanName').innerText = g_companyPlan.toUpperCase();
 
 if(g_companyPlan === 'pusula') {
-g_companyLimit = 100; // 100 Ton
+g_companyLimit = 100;
 } else {
-g_companyLimit = 999999; // Sınırsız
+g_companyLimit = 999999;
 document.getElementById('dashQuotaText').innerText = "Sınırsız Kullanım";
 }
 
-// Arşivden Toplam Tasarruf ve İşlenen Tonajı Hesapla
 const { data: archiveData } = await supabaseClient.from('archives').select('eng_ton, savings').eq('company_id', currentCompanyId);
 let totalSavedMoney = 0;
 let totalEngTon = 0;
@@ -612,7 +620,6 @@ g_usedTonnage = totalEngTon;
 document.getElementById('dashTotalSavings').innerText = fmtInt(totalSavedMoney) + " ₺";
 document.getElementById('dashTotalSavedTons').innerText = fmt(totalEngTon) + " Tonluk analiz yapıldı";
 
-// Kota Barını Güncelle
 if(g_companyPlan === 'pusula') {
 document.getElementById('dashQuotaText').innerText = `${fmt(g_usedTonnage)} / ${g_companyLimit} Ton`;
 let pct = (g_usedTonnage / g_companyLimit) * 100;
@@ -633,7 +640,6 @@ showToast("Kullanıcı bilgileri alınırken hata oluştu.", "error");
 }
 
 window.openAppView = function() {
-// KOTA KONTROLÜ
 if(g_companyPlan === 'pusula' && g_usedTonnage >= g_companyLimit) {
 showToast("Aylık ücretsiz analiz kotanızı (100 Ton) doldurdunuz. Lütfen paketinizi yükseltin.", "error");
 return;
@@ -644,7 +650,7 @@ document.getElementById('appView').style.display = 'block';
 
 window.goToDashboard = function() {
 document.getElementById('appView').style.display = 'none';
-if(currentUser) fetchSaaSDataAndInit(currentUser); // Verileri tazeleyip dashboard'a geç
+if(currentUser) fetchSaaSDataAndInit(currentUser);
 else document.getElementById('dashboardView').style.display = 'block';
 }
 
@@ -671,7 +677,7 @@ const { data: companyData, error: companyError } = await supabaseClient.from('co
 if (companyError) throw companyError;
 
 const newCompanyId = companyData[0].id;
-const { error: profileError } = await supabaseClient.from('profiles').insert([{ id: authData.user.id, company_id: newCompanyId, full_name: fullName, role: 'user' }]);
+const { error: profileError } = await supabaseClient.from('profiles').insert([{ id: authData.user.id, company_id: newCompanyId, full_name: fullName, role: 'admin' }]);
 if (profileError) throw profileError;
 
 showToast("Kayıt başarılı! Hoşgeldiniz.", "success");
@@ -715,9 +721,6 @@ document.getElementById('appView').style.display = 'none';
 document.getElementById('authView').style.display = 'flex';
 }
 
-// ----------------------------------------------------
-// YENİ: SÜPER ADMIN (TÜM FİRMALAR RAPORU)
-// ----------------------------------------------------
 window.openSuperAdminModal = async function() {
 if(!supabaseClient) return;
 const t = document.querySelector('#superAdminTable tbody');
@@ -725,22 +728,16 @@ t.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;"><i cl
 document.getElementById('superAdminModal').style.display = 'flex';
 
 try {
-// Tüm firmaları çek
 const { data: companies, error: cErr } = await supabaseClient.from('companies').select('*');
-// Tüm kullanıcıları çek
 const { data: profiles, error: pErr } = await supabaseClient.from('profiles').select('*');
-// Tüm arşiv (analiz) verilerini çek
 const { data: archives, error: aErr } = await supabaseClient.from('archives').select('company_id, eng_ton, savings');
 
 if (cErr || pErr || aErr) throw new Error("Veri çekme hatası");
 
 let rowsHtml = '';
 companies.forEach(company => {
-// O firmadaki kullanıcı sayısını bul
 let userCount = profiles.filter(p => p.company_id === company.id).length;
-// O firmanın toplam tonaj ve kazancını topla
-let compTonnage = 0;
-let compSavings = 0;
+let compTonnage = 0; let compSavings = 0;
 archives.filter(a => a.company_id === company.id).forEach(a => {
 compTonnage += Number(a.eng_ton) || 0;
 compSavings += Number(a.savings) || 0;
@@ -765,7 +762,6 @@ t.innerHTML = '<tr><td colspan="5" style="text-align:center;color:red;">Veriler 
 }
 }
 
-
 // ----------------------------------------------------
 // 3. DXF VE ATTRIB BLOK OKUYUCU (YAPAY ZEKA)
 // ----------------------------------------------------
@@ -788,40 +784,24 @@ let currentInsert = null;
 
 for (let i = 0; i < lines.length; i++) {
 let code = lines[i].trim(); let val = lines[i+1] ? lines[i+1].trim() : "";
-
 if (code === '0') {
 if (currentEntity) {
-if (currentEntity.type === 'ATTRIB' && currentInsert) {
-currentInsert.attribs[currentEntity.tag] = currentEntity.text;
-}
+if (currentEntity.type === 'ATTRIB' && currentInsert) { currentInsert.attribs[currentEntity.tag] = currentEntity.text; }
 globalDxfEntities.push(currentEntity);
 if(currentEntity.layer) uniqueLayers.add(currentEntity.layer);
 }
 
-if (val === 'SEQEND') {
-currentInsert = null; currentEntity = null;
-} else if (['TEXT', 'MTEXT'].includes(val)) {
-currentEntity = { type: val, text: "", layer: "", x1:0, y1:0, height:100 };
-} else if (val === 'INSERT') {
-currentEntity = { type: val, layer: "", x1:0, y1:0, scaleX:1, scaleY:1, rotation:0, blockName:"", attribs:{} };
-currentInsert = currentEntity;
-} else if (val === 'ATTRIB') {
-currentEntity = { type: val, tag: "", text: "", layer: "", x1:0, y1:0, height:100 };
-} else {
-currentEntity = null;
-}
+if (val === 'SEQEND') { currentInsert = null; currentEntity = null; }
+else if (['TEXT', 'MTEXT'].includes(val)) { currentEntity = { type: val, text: "", layer: "", x1:0, y1:0, height:100 }; }
+else if (val === 'INSERT') { currentEntity = { type: val, layer: "", x1:0, y1:0, scaleX:1, scaleY:1, rotation:0, blockName:"", attribs:{} }; currentInsert = currentEntity; }
+else if (val === 'ATTRIB') { currentEntity = { type: val, tag: "", text: "", layer: "", x1:0, y1:0, height:100 }; }
+else { currentEntity = null; }
 i++; continue;
 }
 if (currentEntity) {
-if (code === '8') {
-if (currentEntity.type === 'ATTRIB' && currentInsert) currentEntity.layer = currentInsert.layer || val;
-else currentEntity.layer = val;
-}
+if (code === '8') { if (currentEntity.type === 'ATTRIB' && currentInsert) currentEntity.layer = currentInsert.layer || val; else currentEntity.layer = val; }
 else if (code === '1') currentEntity.text = cleanDxfText(val);
-else if (code === '2') {
-if (currentEntity.type === 'INSERT') currentEntity.blockName = val;
-else if (currentEntity.type === 'ATTRIB') currentEntity.tag = val.toUpperCase();
-}
+else if (code === '2') { if (currentEntity.type === 'INSERT') currentEntity.blockName = val; else if (currentEntity.type === 'ATTRIB') currentEntity.tag = val.toUpperCase(); }
 else if (code === '10') currentEntity.x1 = parseFloat(val);
 else if (code === '20') currentEntity.y1 = parseFloat(val);
 else if (code === '40') currentEntity.height = parseFloat(val);
@@ -830,9 +810,7 @@ else if (code === '42' && currentEntity.type === 'INSERT') currentEntity.scaleY 
 }
 i++;
 }
-if (currentEntity) {
-globalDxfEntities.push(currentEntity); if(currentEntity.layer) uniqueLayers.add(currentEntity.layer);
-}
+if (currentEntity) { globalDxfEntities.push(currentEntity); if(currentEntity.layer) uniqueLayers.add(currentEntity.layer); }
 
 let optionsHTML = '<option value="">-- Katman Seç --</option>';
 Array.from(uniqueLayers).sort().forEach(l => { optionsHTML += `<option value="${l}">${l}</option>`; });
@@ -854,7 +832,6 @@ document.getElementById('hybridLoader').style.display = 'flex';
 
 setTimeout(() => {
 try {
-// 1. LEJANT ÇÖZÜMÜ
 let legendTexts = globalDxfEntities.filter(e => e.layer === selLegend && (e.type==="TEXT"||e.type==="MTEXT"||e.type==="ATTRIB"));
 if(legendTexts.length === 0) throw new Error("Seçilen Lejant katmanında hiç yazı bulunamadı!");
 
@@ -909,9 +886,7 @@ legendArray.push({ poz: poz, cap: cap, adet: adet, boy: boy });
 
 if(legendArray.length === 0) throw new Error("Lejant katmanında veri bulunamadı.");
 
-// 2. YAZI (TEXT) VE BLOK (ATTRIB) KIYASLAMASI
 let physEntities = globalDxfEntities.filter(e => e.layer === selText);
-
 let physTexts = physEntities.filter(e => e.type==="TEXT"||e.type==="MTEXT");
 let textClusters = []; let visited = new Set();
 for (let i = 0; i < physTexts.length; i++) {
@@ -943,7 +918,6 @@ mappedRows.push([legData.boy, legData.adet, legData.poz, legData.cap]);
 let pUp = legData.poz.toUpperCase();
 let totalYaziAdet = 0; let maxYaziBoy = 0; let boyBulundu = false;
 
-// A) BLOKLARIN (ATTRIB) İÇİNE BAK
 let matchedBlocks = physEntities.filter(e => e.type === 'INSERT' && e.attribs);
 matchedBlocks.forEach(ins => {
 let p = ins.attribs['POZ'] || ins.attribs['NO'] || ins.attribs['POZYAZISI'];
@@ -952,24 +926,15 @@ let cleanP = p.replace(/[\(\)\[\]]/g, '').trim();
 if(cleanP === pUp || (typeof isSamePoz === 'function' && isSamePoz(cleanP, pUp)) || cleanP.includes(pUp)) {
 let aStr = ins.attribs['ADET'] || ins.attribs['PIECE'] || ins.attribs['POZYAZISI'];
 let bStr = ins.attribs['BOY'] || ins.attribs['L'] || ins.attribs['BOY A'];
-
-if (aStr) {
-let aMatch = aStr.match(/^(\d+)/);
-if(aMatch) totalYaziAdet += parseInt(aMatch[1]);
-}
+if (aStr) { let aMatch = aStr.match(/^(\d+)/); if(aMatch) totalYaziAdet += parseInt(aMatch[1]); }
 if(bStr) {
 let bVal = parseFloat(bStr.replace(/[^\d.,]/g, '').replace(',', '.'));
-if(!isNaN(bVal)) {
-if(bVal < 100) bVal = Math.round(bVal * 1000);
-maxYaziBoy = Math.max(maxYaziBoy, bVal);
-boyBulundu = true;
-}
+if(!isNaN(bVal)) { if(bVal < 100) bVal = Math.round(bVal * 1000); maxYaziBoy = Math.max(maxYaziBoy, bVal); boyBulundu = true; }
 }
 }
 }
 });
 
-// B) BLOKLARDAN BULUNAMADIYSA NORMAL YAZILARA (TEXT) BAK
 if (totalYaziAdet === 0) {
 let pozRegex = new RegExp(`(^|\\s|[\\(\\[\\{])(P-?|POZ\\s*)?0*${pUp}(?=\\s|[\\)\\]\\}]|$)`, 'i');
 clusterStrings.forEach(fullString => {
@@ -1038,7 +1003,6 @@ window.processFile = async function() {
 const fi = document.getElementById('excelFile'); const sl = getInputValue('stockLen'); g_unitWeight = parseFloat(document.getElementById('profileType').value); g_customStocksInput = window.getCustomStocksArray();
 if (!fi.files.length) { showToast("Lütfen Excel dosyası seçiniz.", "error"); return; } if (!sl || sl <= 0) { showToast("Geçerli standart stok boyu giriniz.", "error"); return; }
 
-// KOTA KONTROLÜ İKİNCİ KATMAN
 if(g_companyPlan === 'pusula' && g_usedTonnage >= g_companyLimit) {
 showToast("Aylık kotanızı aştığınız için optimizasyon başlatılamıyor.", "error");
 return;
@@ -1159,7 +1123,6 @@ let tw = 0; let usedBins = bins.filter(b => b.parts.length > 0); usedBins.forEac
 window.openGlobalDepoModal = async function() {
 if(!supabaseClient) { showToast("Sanal depo bulut bağlantısı gerektirir. (Test Modu)", "warning"); return; }
 const t = document.querySelector('#globalDepoTable tbody'); t.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;"><i class="fa-solid fa-spinner fa-spin"></i> Depo Yükleniyor...</td></tr>'; document.getElementById('globalDepoModal').style.display = 'flex';
-
 const { data, error } = await supabaseClient.from('virtual_depots').select('*').eq('company_id', currentCompanyId).order('created_at', { ascending: false });
 if (error || !data || data.length === 0) { t.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;">Sanal deponuzda kayıt bulunmuyor.</td></tr>'; return; }
 let rowsHtml = ''; data.forEach(r => { const d = new Date(r.created_at); const dateStr = d.toLocaleDateString('tr-TR'); let profileText = ""; document.querySelectorAll('#profileType option').forEach(opt => { if(opt.value === String(r.profile_cap)) profileText = opt.text; }); rowsHtml += `<tr><td style="text-align:left;">${dateStr}</td><td style="text-align:center;">${profileText}</td><td style="text-align:center;font-weight:bold;">${fmtInt(r.length_mm)} mm</td><td style="text-align:center;"><span class="badge badge-sim">${fmtInt(r.quantity)} Adet</span></td><td style="text-align:center;"><i class="fa-solid fa-trash-can action-icon" style="color:var(--danger);" onclick="deleteGlobalDepoItem('${r.id}')" title="Sil"></i></td></tr>`; }); t.innerHTML = rowsHtml;
