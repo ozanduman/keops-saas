@@ -14,19 +14,25 @@
 :root{--gold:#d4af37;--gold-light:#f1c40f;--secondary:#2c3e50;--bg-main:#f1f2f6;--card-bg:#ffffff;--border:#dfe4ea;--text-primary:#2c3e50;--text-secondary:#7f8c8d;--success:#27ae60;--warning:#f39c12;--danger:#c0392b;}
 body{font-family:'Roboto',sans-serif;background-color:var(--bg-main);color:var(--text-primary);margin:0;min-height:100vh;}
 body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background-image:url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20L0 40h40L20 20zm0 0L40 0H0l20 20z' fill='%23d4af37' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E");pointer-events:none;z-index:-1;}
+
+/* AUTH EKRANI GÜNCELLEMELERİ */
 #authView{display:flex;justify-content:center;align-items:center;min-height:100vh;background:linear-gradient(135deg,#2c3e50,#34495e);position:fixed;top:0;left:0;width:100%;z-index:10000;}
-.auth-card{background:white;padding:40px;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,0.3);width:100%;max-width:400px;text-align:center;}
-.auth-logo{width:80px;margin-bottom:20px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.2));}
+.auth-card{background:white;padding:40px 30px;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,0.3);width:100%;max-width:400px;text-align:center;}
+.auth-logo{width:80px;margin-bottom:15px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.2));}
 .auth-title{font-size:24px;font-weight:900;color:var(--secondary);margin-bottom:5px;letter-spacing:1px;}
-.auth-subtitle{font-size:13px;color:var(--text-secondary);margin-bottom:30px;}
-.auth-input{width:100%;padding:15px;margin-bottom:15px;border:1px solid var(--border);border-radius:8px;font-size:15px;box-sizing:border-box;background:#f8f9fa;transition:0.3s;}
+.auth-subtitle{font-size:13px;color:var(--text-secondary);margin-bottom:25px;}
+.auth-input{width:100%;padding:14px;margin-bottom:12px;border:1px solid var(--border);border-radius:8px;font-size:14px;box-sizing:border-box;background:#f8f9fa;transition:0.3s;}
 .auth-input:focus{border-color:var(--gold);outline:none;background:white;box-shadow:0 0 0 3px rgba(212,175,55,0.1);}
-.auth-btn{width:100%;padding:15px;background:linear-gradient(45deg,var(--gold),var(--gold-light));color:white;border:none;border-radius:8px;font-weight:700;font-size:16px;cursor:pointer;transition:0.3s;margin-bottom:10px;}
+.auth-btn{width:100%;padding:14px;background:linear-gradient(45deg,var(--gold),var(--gold-light));color:white;border:none;border-radius:8px;font-weight:700;font-size:15px;cursor:pointer;transition:0.3s;}
 .auth-btn:hover{transform:translateY(-2px);box-shadow:0 5px 15px rgba(212,175,55,0.4);}
-.auth-btn-outline{background:white;color:var(--secondary);border:2px solid var(--border);}
-.auth-btn-outline:hover{background:#f8f9fa;border-color:var(--secondary);box-shadow:none;transform:translateY(0);}
 .auth-btn-test{background:#7f8c8d; color:white; margin-top: 15px; border:none;}
 .auth-btn-test:hover{background:#95a5a6; box-shadow:none; transform:translateY(0);}
+
+#loginForm, #registerForm { width: 100%; transition: 0.3s; }
+#registerForm { display: none; }
+.toggle-link { color: var(--gold); cursor: pointer; font-size: 13px; font-weight: bold; margin-top: 15px; display: inline-block; transition: 0.2s; }
+.toggle-link:hover { color: var(--gold-light); text-decoration: underline; }
+
 #appView{display:none;padding-bottom:60px;}
 .navbar{background:var(--secondary);color:white;padding:12px 30px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 4px 15px rgba(0,0,0,0.1);position:sticky;top:0;z-index:100;}
 .brand-wrapper{display:flex;align-items:center;gap:15px;}
@@ -100,8 +106,6 @@ tr.selected-row{background-color:#fff8e1 !important;border-left:4px solid var(--
 .btn-pdf{background-color:#c0392b;} .btn-pdf:hover{background-color:#a93226;}
 .btn-finance{background-color:#2980b9;} .btn-finance:hover{background-color:#1f618d;}
 .btn-archive{background-color:#8e44ad;} .btn-archive:hover{background-color:#732d91;}
-
-/* Z-INDEX DÜZELTMELERİ (Mesajların öne gelmesi için) */
 .loader-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.9);z-index:99999;display:none;flex-direction:column;align-items:center;justify-content:center;backdrop-filter:blur(5px);}
 .loader-content{background:white;padding:40px;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,0.1);text-align:center;border:1px solid #eee;}
 .spinner{width:50px;height:50px;border:4px solid #f3f3f3;border-top:4px solid var(--gold);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 20px auto;}
@@ -135,14 +139,23 @@ tr.selected-row{background-color:#fff8e1 !important;border-left:4px solid var(--
 <div class="auth-title">KeOpS SaaS</div>
 <div class="auth-subtitle">Bulut Tabanlı Metraj Platformu</div>
 
+<div id="loginForm">
 <input type="email" id="authEmail" class="auth-input" placeholder="E-posta Adresiniz">
-<input type="password" id="authPassword" class="auth-input" placeholder="Şifreniz (En az 6 karakter)">
-
+<input type="password" id="authPassword" class="auth-input" placeholder="Şifreniz">
 <button class="auth-btn" onclick="doLogin()">Giriş Yap</button>
-<button class="auth-btn auth-btn-outline" onclick="doRegister()">Yeni Kayıt Ol</button>
-<button class="auth-btn auth-btn-test" onclick="bypassLogin()">Test Modu (Bulutsuz Gir)</button>
+<div class="toggle-link" onclick="toggleAuth('register')">Hesabınız yok mu? Yeni Kayıt Olun</div>
+</div>
 
-<div style="margin-top:15px; font-size:12px; color:var(--text-secondary);">Şifrenizi mi unuttunuz? Lütfen yöneticinizle görüşün.</div>
+<div id="registerForm">
+<input type="text" id="regFullName" class="auth-input" placeholder="Adınız Soyadınız">
+<input type="text" id="regCompanyName" class="auth-input" placeholder="Firma Adı (Örn: ABC İnşaat A.Ş.)">
+<input type="email" id="regEmail" class="auth-input" placeholder="E-posta Adresiniz">
+<input type="password" id="regPassword" class="auth-input" placeholder="Şifre (En az 6 karakter)">
+<button class="auth-btn" onclick="doRegister()">Kayıt Ol ve Başla</button>
+<div class="toggle-link" onclick="toggleAuth('login')">Zaten hesabınız var mı? Giriş Yapın</div>
+</div>
+
+<button class="auth-btn auth-btn-test" onclick="bypassLogin()">Test Modu (Bulutsuz Gir)</button>
 </div>
 </div>
 
@@ -351,14 +364,24 @@ Adım 1: DXF dosyasını yükleyin. Adım 2: Yazı ve Lejant katmanlarını seç
 
 <script>
 // ==========================================
-// 1. GENEL YARDIMCI FONKSİYONLAR
+// 1. GENEL YARDIMCI FONKSİYONLAR VE FORMATLAR
 // ==========================================
 window.fmt = function(n) { return Number(n).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
+
 window.fmtInt = function(n) {
-if (typeof n === 'number') return Math.round(n).toLocaleString('tr-TR');
-let str = String(n); let parsed = Number(str.replace(/\./g, '').replace(/,/g, '.'));
-return isNaN(parsed) ? '0' : Math.round(parsed).toLocaleString('tr-TR');
+if(n === undefined || n === null) return '0';
+if(typeof n === 'number') return Math.round(n).toLocaleString('tr-TR');
+
+let str = String(n);
+let parsedDirect = parseFloat(str);
+if(!isNaN(parsedDirect) && str.includes('.') && !str.includes(',')) {
+return Math.round(parsedDirect).toLocaleString('tr-TR');
+}
+
+let parsedTR = Number(str.replace(/\./g, '').replace(/,/g, '.'));
+return isNaN(parsedTR) ? '0' : Math.round(parsedTR).toLocaleString('tr-TR');
 };
+
 window.formatInput = function(e) { let v = e.value.replace(/[^0-9]/g, ''); e.value = v ? parseInt(v).toLocaleString('tr-TR') : ""; };
 window.getInputValue = function(id) { let v = document.getElementById(id).value; return v ? parseFloat(v.replace(/\./g, '')) : 0; };
 window.showToast = function(msg, type='info') {
@@ -367,6 +390,7 @@ let icon = type==='error'?'<i class="fa-solid fa-circle-exclamation" style="colo
 toast.innerHTML = `${icon} <span>${msg}</span>`; container.appendChild(toast);
 setTimeout(() => { toast.style.animation = 'fadeOut 0.3s forwards'; setTimeout(() => toast.remove(), 300); }, 4000);
 };
+
 document.getElementById('excelFile').addEventListener('change', function(e) { document.getElementById('fileNameDisplay').innerText = e.target.files[0] ? e.target.files[0].name : "Dosya Seçin"; });
 
 // ==========================================
@@ -387,17 +411,14 @@ window.onload = async function() {
 document.getElementById('hybridLoader').style.display = 'flex';
 
 try {
-if (window.supabase) {
+if (window.supabase && SUPABASE_KEY.startsWith('eyJ')) {
 supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const { data: { session }, error } = await supabaseClient.auth.getSession();
 
-// Eğer key yanlış formatlıysa (sb_ ile başlıyorsa) session ararken hata fırlatmaz ama arka planda sessizce çöker.
-// Bu yüzden try-catch ile korumaya aldık.
-const { data, error } = await supabaseClient.auth.getSession();
-
-if (data && data.session) {
-const { data: profileData } = await supabaseClient.from('profiles').select('company_id').eq('id', data.session.user.id).single();
+if (session) {
+const { data: profileData } = await supabaseClient.from('profiles').select('company_id').eq('id', session.user.id).single();
 if(profileData) currentCompanyId = profileData.company_id;
-initSaaSApp(data.session.user);
+initSaaSApp(session.user);
 } else {
 document.getElementById('authView').style.display = 'flex';
 document.getElementById('appView').style.display = 'none';
@@ -405,13 +426,22 @@ document.getElementById('appView').style.display = 'none';
 } else {
 document.getElementById('authView').style.display = 'flex';
 document.getElementById('appView').style.display = 'none';
-showToast("Tarayıcı güvenliği nedeniyle bazı özellikler kısıtlandı. Test Modu ile giriş yapabilirsiniz.", "warning");
 }
 } catch(err) {
 document.getElementById('authView').style.display = 'flex';
 document.getElementById('appView').style.display = 'none';
 } finally {
 document.getElementById('hybridLoader').style.display = 'none';
+}
+};
+
+window.toggleAuth = function(type) {
+if(type === 'register') {
+document.getElementById('loginForm').style.display = 'none';
+document.getElementById('registerForm').style.display = 'block';
+} else {
+document.getElementById('registerForm').style.display = 'none';
+document.getElementById('loginForm').style.display = 'block';
 }
 };
 
@@ -424,16 +454,18 @@ showToast("Test modunda giriş yapıldı. Bulut kaydı pasiftir.", "warning");
 
 window.doRegister = async function() {
 if (!SUPABASE_KEY.startsWith('eyJ')) {
-showToast("HATA: API Anahtarı yanlış! Lütfen Supabase'den aldığınız 'eyJ' ile başlayan anon key'i kodun en altındaki alana yapıştırın.", "error");
+showToast("HATA: API Anahtarı yanlış! Supabase'den aldığınız 'eyJ' ile başlayan anon key'i koda yapıştırmalısın.", "error");
 return;
 }
 
 if(!supabaseClient) { showToast("Sunucu hazır değil. Lütfen 'Test Modu'nu kullanın.", "error"); return; }
 
-const email = document.getElementById('authEmail').value;
-const password = document.getElementById('authPassword').value;
+const fullName = document.getElementById('regFullName').value.trim();
+const companyName = document.getElementById('regCompanyName').value.trim();
+const email = document.getElementById('regEmail').value.trim();
+const password = document.getElementById('regPassword').value;
 
-if(!email || !password) { showToast("E-posta ve şifre zorunludur.", "error"); return; }
+if(!fullName || !companyName || !email || !password) { showToast("Lütfen tüm alanları doldurun.", "error"); return; }
 if(password.length < 6) { showToast("Şifre en az 6 karakter olmalıdır.", "warning"); return; }
 
 document.getElementById('loaderText').innerText = 'Kayıt Yapılıyor...';
@@ -443,11 +475,11 @@ try {
 const { data: authData, error: authError } = await supabaseClient.auth.signUp({ email: email, password: password });
 if(authError) throw authError;
 
-const { data: companyData, error: companyError } = await supabaseClient.from('companies').insert([{ name: email.split('@')[0].toUpperCase() + ' A.Ş.', subscription_plan: 'pusula' }]).select();
+const { data: companyData, error: companyError } = await supabaseClient.from('companies').insert([{ name: companyName, subscription_plan: 'pusula' }]).select();
 if (companyError) throw companyError;
 
 const newCompanyId = companyData[0].id;
-const { error: profileError } = await supabaseClient.from('profiles').insert([{ id: authData.user.id, company_id: newCompanyId, full_name: email.split('@')[0] }]);
+const { error: profileError } = await supabaseClient.from('profiles').insert([{ id: authData.user.id, company_id: newCompanyId, full_name: fullName, role: 'admin' }]);
 if (profileError) throw profileError;
 
 showToast("Kayıt başarılı! Hoşgeldiniz.", "success");
@@ -462,7 +494,7 @@ document.getElementById('hybridLoader').style.display = 'none';
 
 window.doLogin = async function() {
 if (!SUPABASE_KEY.startsWith('eyJ')) {
-showToast("HATA: API Anahtarı yanlış! Lütfen Supabase'den aldığınız 'eyJ' ile başlayan anon key'i kodun en altındaki alana yapıştırın.", "error");
+showToast("HATA: API Anahtarı yanlış! Supabase'den aldığınız 'eyJ' ile başlayan anon key'i koda yapıştırmalısın.", "error");
 return;
 }
 
@@ -510,6 +542,11 @@ document.getElementById('displayUser').innerText = user.email.split('@')[0];
 // ----------------------------------------------------
 // 3. DXF VE ATTRIB BLOK OKUYUCU (YAPAY ZEKA)
 // ----------------------------------------------------
+function cleanDxfText(val) {
+let s = val.replace(/\\P/g, ' '); s = s.replace(/\\[A-Za-z0-9~][^;]*;/g, ''); s = s.replace(/[{}]/g, '');
+s = s.replace(/%%C/gi, 'Ø'); s = s.replace(/\\U\+2205/gi, 'Ø'); s = s.replace(/\\U\+00D8/gi, 'Ø'); return s.trim();
+}
+
 window.parseDxfLayers = function(input) {
 if (!input.files.length) return;
 document.getElementById('dxfCompareFileName').innerText = input.files[0].name;
@@ -579,6 +616,13 @@ document.getElementById('hybridLoader').style.display = 'none';
 showToast("DXF başarıyla okundu.", "success");
 };
 reader.readAsText(input.files[0]);
+}
+
+function isSamePoz(p1, p2) {
+let cp1 = p1.replace(/[\(\)\[\]]/g, '').trim(); let cp2 = p2.replace(/[\(\)\[\]]/g, '').trim();
+if (cp1 === cp2) return true;
+if (!isNaN(cp1) && !isNaN(cp2) && parseInt(cp1) === parseInt(cp2)) return true;
+return false;
 }
 
 window.runDxfComparison = function() {
@@ -833,7 +877,13 @@ window.selectScenarioRow = function(tr, length, wasteTon) { document.querySelect
 
 function startLiveAnalysis(len, iw) {
 g_selectedLen = len; g_baseWasteTon = iw; document.getElementById('analysisPanel').style.display = 'block'; document.getElementById('anaTitle').innerText = fmtInt(len); document.getElementById('analysisPanel').scrollIntoView({ behavior: "smooth", block: "start" });
-let u = {}; g_parts.forEach(p => { if (!u[p.length]) u[p.length] = { len: p.length, c: 0, tl: 0 }; u[p.length].c += p.qty; u[p.length].tl += p.length * p.qty; });
+let u = {};
+g_parts.forEach(p => {
+let L = Math.round(p.length);
+if (!u[L]) u[L] = { len: L, c: 0, tl: 0 };
+u[L].c += p.qty;
+u[L].tl += L * p.qty;
+});
 let pl = Object.values(u); pl.forEach(p => { let sp = []; for (let k = 0; k < p.c; k++) sp.push({ length: p.len }); let r = solveBestFitClient(sp, g_selectedLen, g_customStocksInput); p.sw = (r.waste / 1000 * g_unitWeight) / 1000; }); pl.sort((a, b) => b.sw - a.sw);
 const ld = document.getElementById('culpritsList'); let culpritHtml = '';
 pl.forEach(p => {
@@ -850,7 +900,8 @@ const cb = document.querySelectorAll('.culprit-check:checked'); let cc = new Map
 let sp = [], sg = new Map();
 g_parts.forEach(p => {
 for(let i=0; i<p.qty; i++){
-if (cc.has(p.length)) { let ts = cc.get(p.length); if (!sg.has(ts)) sg.set(ts, []); sg.get(ts).push({length:p.length, customer:p.customer}); } else { sp.push({length:p.length, customer:p.customer}); }
+let L = Math.round(p.length);
+if (cc.has(L)) { let ts = cc.get(L); if (!sg.has(ts)) sg.set(ts, []); sg.get(ts).push({length:L, customer:p.customer}); } else { sp.push({length:L, customer:p.customer}); }
 }
 });
 let twk = 0, tw = 0, swk = 0, sw = 0; let sd = [], cp = [];
