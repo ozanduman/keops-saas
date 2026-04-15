@@ -33,7 +33,11 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background-
 .toggle-link { color: var(--gold); cursor: pointer; font-size: 13px; font-weight: bold; margin-top: 15px; display: inline-block; transition: 0.2s; }
 .toggle-link:hover { color: var(--gold-light); text-decoration: underline; }
 
-/* DASHBOARD (KONTROL PANELİ) EKRANI YENİ */
+.reg-type-selector { display:flex; gap:10px; margin-bottom:15px; }
+.reg-type-btn { flex:1; padding:10px; font-size:12px; font-weight:bold; border:1px solid var(--border); border-radius:6px; cursor:pointer; background:#f8f9fa; color:var(--text-secondary); transition:0.2s; }
+.reg-type-btn.active { background:var(--secondary); color:white; border-color:var(--secondary); }
+
+/* DASHBOARD EKRANI */
 #dashboardView { display: none; padding-bottom: 60px; }
 .dash-header { padding: 40px 25px; background: white; border-bottom: 1px solid var(--border); box-shadow: 0 4px 15px rgba(0,0,0,0.02); margin-bottom: 30px; }
 .dash-header h1 { margin: 0; color: var(--secondary); font-size: 28px; }
@@ -52,6 +56,24 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background-
 .action-card i { font-size: 36px; color: var(--gold); margin-bottom: 15px; }
 .action-card h3 { margin: 0 0 5px 0; color: var(--secondary); font-size: 16px; }
 .action-card p { margin: 0; color: var(--text-secondary); font-size: 12px; }
+.upgrade-btn { background: var(--danger); color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; float: right; transition: 0.2s; }
+.upgrade-btn:hover { background: #a93226; }
+
+/* PRICING (SATIN ALIM) TABLOSU */
+.pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 20px; }
+.pricing-card { border: 1px solid var(--border); border-radius: 12px; padding: 30px; text-align: center; position: relative; background: #fff; transition: 0.3s; }
+.pricing-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
+.pricing-card.popular { border-color: var(--gold); border-width: 2px; box-shadow: 0 10px 30px rgba(212,175,55,0.15); }
+.popular-badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--gold); color: white; padding: 4px 15px; font-size: 11px; font-weight: bold; border-radius: 20px; }
+.pricing-title { font-size: 20px; font-weight: 900; color: var(--secondary); margin-bottom: 10px; }
+.pricing-price { font-size: 36px; font-weight: 900; color: var(--text-primary); margin-bottom: 20px; }
+.pricing-price span { font-size: 14px; color: var(--text-secondary); font-weight: normal; }
+.pricing-features { list-style: none; padding: 0; margin: 0 0 25px 0; text-align: left; }
+.pricing-features li { margin-bottom: 12px; font-size: 14px; color: var(--text-secondary); display: flex; align-items: center; gap: 8px; }
+.pricing-features li i { color: var(--success); }
+.pricing-btn { width: 100%; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; border: 2px solid var(--secondary); background: transparent; color: var(--secondary); }
+.pricing-card.popular .pricing-btn { background: var(--secondary); color: white; }
+.pricing-btn:hover { background: var(--secondary); color: white; }
 
 /* APP EKRANI */
 #appView{display:none;padding-bottom:60px;}
@@ -172,10 +194,17 @@ tr.selected-row{background-color:#fff8e1 !important;border-left:4px solid var(--
 </div>
 
 <div id="registerForm">
+<div class="reg-type-selector">
+<button class="reg-type-btn active" id="btnRegTypeNew" onclick="setRegType('new')">Yeni Firma Kur</button>
+<button class="reg-type-btn" id="btnRegTypeJoin" onclick="setRegType('join')">Davet Koduyla Katıl</button>
+</div>
+
 <input type="text" id="regFullName" class="auth-input" placeholder="Adınız Soyadınız">
 <input type="text" id="regCompanyName" class="auth-input" placeholder="Firma Adı (Örn: ABC İnşaat A.Ş.)">
+<input type="text" id="regInviteCode" class="auth-input" placeholder="Firma Davet Kodu" style="display:none;">
 <input type="email" id="regEmail" class="auth-input" placeholder="E-posta Adresiniz">
 <input type="password" id="regPassword" class="auth-input" placeholder="Şifre (En az 6 karakter)">
+
 <button class="auth-btn" onclick="doRegister()">Kayıt Ol ve Başla</button>
 <div class="toggle-link" onclick="toggleAuth('login')">Zaten hesabınız var mı? Giriş Yapın</div>
 </div>
@@ -195,7 +224,8 @@ tr.selected-row{background-color:#fff8e1 !important;border-left:4px solid var(--
 <div class="brand-text">KeOpS</div>
 </div>
 <div class="navbar-user">
-<div id="dashDisplayUser" style="color:var(--gold-light); font-weight:bold;">Kullanıcı</div>
+<div id="dashDisplayUser" style="color:var(--gold-light); font-weight:bold; margin-right:15px;">Kullanıcı</div>
+<button class="admin-btn" id="btnTeamAdmin" style="display:none;" onclick="openTeamModal()"><i class="fa-solid fa-users"></i> Ekibim</button>
 <button class="admin-btn" id="btnSuperAdmin" style="display:none; border-color:var(--danger); color:var(--danger);" onclick="openSuperAdminModal()"><i class="fa-solid fa-crown"></i> Süper Admin</button>
 <button class="logout-btn" onclick="doLogout()"><i class="fa-solid fa-power-off"></i> Çıkış</button>
 </div>
@@ -210,13 +240,14 @@ tr.selected-row{background-color:#fff8e1 !important;border-left:4px solid var(--
 <div class="dash-grid">
 <div class="dash-card">
 <div class="dash-card-title">Mevcut Abonelik Planı</div>
-<div class="dash-card-value" id="dashPlanName" style="color:var(--gold);">Pusula</div>
+<div class="dash-card-value" id="dashPlanName" style="color:var(--gold);">Demo</div>
 <div class="dash-card-sub" style="color:var(--text-secondary);">Ücretsiz Deneme Sürümü</div>
 </div>
 
 <div class="dash-card">
+<button class="upgrade-btn" onclick="openPricingModal()"><i class="fa-solid fa-bolt"></i> Yükselt</button>
 <div class="dash-card-title">Aylık Kota Kullanımı</div>
-<div class="dash-card-value" id="dashQuotaText">0 / 100 Ton</div>
+<div class="dash-card-value" id="dashQuotaText">0 / 20 Ton</div>
 <div class="progress-bar-bg">
 <div class="progress-bar-fill" id="dashQuotaBar"></div>
 </div>
@@ -342,6 +373,76 @@ tr.selected-row{background-color:#fff8e1 !important;border-left:4px solid var(--
 </div>
 </div>
 
+<div id="pricingModal" class="admin-modal">
+<div class="admin-content" style="max-width: 1000px;">
+<i class="fa-solid fa-xmark close-btn" onclick="document.getElementById('pricingModal').style.display='none'"></i>
+<h2 style="color:var(--secondary); margin-top:0; text-align:center;">Paketinizi Yükseltin</h2>
+<p style="font-size:14px; color:var(--text-secondary); text-align:center; margin-bottom: 30px;">Şantiyenizdeki demir israfını sınırsızca önlemek için ihtiyacınız olan paketi seçin.</p>
+
+<div class="pricing-grid">
+<div class="pricing-card">
+<div class="pricing-title">DEMO</div>
+<div class="pricing-price">Ücretsiz</div>
+<ul class="pricing-features">
+<li><i class="fa-solid fa-check"></i> Maksimum 20 Ton Analiz</li>
+<li><i class="fa-solid fa-check"></i> DXF Kıyaslama</li>
+<li><i class="fa-solid fa-check"></i> Sanal Depo</li>
+<li style="color:#bdc3c7;"><i class="fa-solid fa-xmark" style="color:#bdc3c7;"></i> Sınırsız Optimizasyon</li>
+</ul>
+<button class="pricing-btn" disabled>Mevcut Paketiniz</button>
+</div>
+
+<div class="pricing-card popular">
+<div class="popular-badge">EN ÇOK TERCİH EDİLEN</div>
+<div class="pricing-title">ŞANTİYE</div>
+<div class="pricing-price">1.500 ₺ <span>/ ay</span></div>
+<ul class="pricing-features">
+<li><i class="fa-solid fa-check"></i> <b>Sınırsız Tonaj Analizi</b></li>
+<li><i class="fa-solid fa-check"></i> Tüm DXF Özellikleri</li>
+<li><i class="fa-solid fa-check"></i> Sınırsız Sanal Depo</li>
+<li><i class="fa-solid fa-check"></i> PDF ve Excel Raporları</li>
+</ul>
+<button class="pricing-btn" onclick="showToast('Iyzico ödeme altyapısı yakında aktif edilecektir.', 'info')">Hemen Satın Al</button>
+</div>
+
+<div class="pricing-card">
+<div class="pricing-title">KURUMSAL</div>
+<div class="pricing-price">Özel Fiyat</div>
+<ul class="pricing-features">
+<li><i class="fa-solid fa-check"></i> Sınırsız Şantiye Yönetimi</li>
+<li><i class="fa-solid fa-check"></i> Süper Admin Paneli</li>
+<li><i class="fa-solid fa-check"></i> API Desteği (ERP Entegrasyonu)</li>
+<li><i class="fa-solid fa-check"></i> 7/24 Öncelikli Destek</li>
+</ul>
+<button class="pricing-btn" onclick="window.location.href='mailto:ozan.duman@ronesans.com'">Bize Ulaşın</button>
+</div>
+</div>
+</div>
+</div>
+
+<div id="teamModal" class="admin-modal">
+<div class="admin-content" style="max-width: 700px;">
+<i class="fa-solid fa-xmark close-btn" onclick="document.getElementById('teamModal').style.display='none'"></i>
+<h2 style="color:var(--secondary); margin-top:0; border-bottom:1px solid var(--border); padding-bottom:15px;"><i class="fa-solid fa-users"></i> Ekip Yönetimi</h2>
+
+<div style="background: rgba(212, 175, 55, 0.1); border: 1px dashed var(--gold); padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+<span style="font-size: 13px; color: var(--secondary); font-weight: bold; display: block; margin-bottom: 5px;">FİRMA DAVET KODUNUZ:</span>
+<div style="display: flex; align-items: center; justify-content: space-between;">
+<code id="txtInviteCode" style="font-size: 20px; font-weight: 900; color: var(--danger); letter-spacing: 1px;">YÜKLENİYOR...</code>
+<button class="admin-btn" style="background: var(--gold); border: none;" onclick="copyInviteCode()">Kodu Kopyala</button>
+</div>
+<p style="font-size: 12px; color: var(--text-secondary); margin: 5px 0 0 0;">Yeni mühendisler kayıt olurken "Davet Koduyla Katıl" seçeneğini seçip bu kodu girmelidir.</p>
+</div>
+
+<div class="table-wrapper" style="max-height: 300px; overflow-y:auto;">
+<table id="teamTable">
+<thead><tr><th style="text-align:left;">Ad Soyad</th><th style="text-align:left;">E-posta</th><th style="text-align:center;">Yetki</th></tr></thead>
+<tbody><tr><td colspan="3" style="text-align:center; padding:20px;">Yükleniyor...</td></tr></tbody>
+</table>
+</div>
+</div>
+</div>
+
 <div id="dxfCompareModal" class="admin-modal">
 <div class="admin-content">
 <i class="fa-solid fa-xmark close-btn" onclick="document.getElementById('dxfCompareModal').style.display='none'"></i>
@@ -361,28 +462,14 @@ Adım 1: DXF dosyasını yükleyin. Adım 2: Yazı ve Lejant katmanlarını seç
 </div>
 <div id="dxfLayerSelectSection" style="display:none;">
 <div class="control-grid" style="grid-template-columns: 1fr 1fr; gap:15px; margin-bottom: 25px; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #ccc;">
-<div class="input-group">
-<label>Yazı Katmanı (Text/Block Layer)</label>
-<select id="selTextLayer"></select>
-</div>
-<div class="input-group">
-<label>Lejant Katmanı (Legend/Table Layer)</label>
-<select id="selLegendLayer"></select>
-</div>
+<div class="input-group"><label>Yazı Katmanı (Text/Block Layer)</label><select id="selTextLayer"></select></div>
+<div class="input-group"><label>Lejant Katmanı (Legend/Table Layer)</label><select id="selLegendLayer"></select></div>
 </div>
 <button class="primary-btn" style="background:var(--danger); width:100%; margin-bottom: 20px;" onclick="runDxfComparison()"><i class="fa-solid fa-cogs"></i> KIYASLA VE EXCEL'E AKTAR</button>
 </div>
 <div class="table-wrapper" style="max-height: 350px; overflow-y:auto; border: 1px solid var(--border); display:none;" id="dxfResultsSection">
 <table id="dxfCompareTable">
-<thead>
-<tr>
-<th style="background:#34495e;">Poz</th>
-<th style="background:#34495e;">Çap</th>
-<th style="background:#2980b9;">Tablo Adet/Boy</th>
-<th style="background:#8e44ad;">Yazı Adet/Boy</th>
-<th style="background:#34495e;">Durum</th>
-</tr>
-</thead>
+<thead><tr><th style="background:#34495e;">Poz</th><th style="background:#34495e;">Çap</th><th style="background:#2980b9;">Tablo Adet/Boy</th><th style="background:#8e44ad;">Yazı Adet/Boy</th><th style="background:#34495e;">Durum</th></tr></thead>
 <tbody></tbody>
 </table>
 </div>
@@ -413,17 +500,9 @@ Adım 1: DXF dosyasını yükleyin. Adım 2: Yazı ve Lejant katmanlarını seç
 <label>Demir Çapı Ekle</label>
 <select id="addDepoProfile"><option value="0.395">Ø8 mm</option><option value="0.617">Ø10 mm</option><option value="0.888">Ø12 mm</option><option value="1.208">Ø14 mm</option><option value="1.580">Ø16 mm</option><option value="1.998">Ø18 mm</option><option value="2.466">Ø20 mm</option><option value="2.984">Ø22 mm</option><option value="3.551">Ø24 mm</option><option value="3.853">Ø25 mm</option><option value="4.834">Ø28 mm</option><option value="5.549">Ø30 mm</option><option value="6.313">Ø32 mm</option></select>
 </div>
-<div class="input-group">
-<label>Boy (mm)</label>
-<input type="text" id="addDepoLen" placeholder="Örn: 3.500" oninput="formatInput(this)">
-</div>
-<div class="input-group">
-<label>Adet</label>
-<input type="text" id="addDepoQty" placeholder="Örn: 15" oninput="formatInput(this)">
-</div>
-<div class="input-group">
-<button class="primary-btn" onclick="addGlobalDepoItem()" style="margin:0; height:47px; padding: 0 20px;"><i class="fa-solid fa-plus"></i> Ekle</button>
-</div>
+<div class="input-group"><label>Boy (mm)</label><input type="text" id="addDepoLen" placeholder="Örn: 3.500" oninput="formatInput(this)"></div>
+<div class="input-group"><label>Adet</label><input type="text" id="addDepoQty" placeholder="Örn: 15" oninput="formatInput(this)"></div>
+<div class="input-group"><button class="primary-btn" onclick="addGlobalDepoItem()" style="margin:0; height:47px; padding: 0 20px;"><i class="fa-solid fa-plus"></i> Ekle</button></div>
 </div>
 <div class="table-wrapper" style="max-height: 400px; overflow-y:auto;">
 <table id="globalDepoTable">
@@ -481,7 +560,7 @@ Adım 1: DXF dosyasını yükleyin. Adım 2: Yazı ve Lejant katmanlarını seç
 
 <script>
 // ==========================================
-// 1. GENEL YARDIMCI FONKSİYONLAR VE FORMATLAR
+// 1. GENEL YARDIMCI FONKSİYONLAR
 // ==========================================
 window.fmt = function(n) { return Number(n).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
 
@@ -511,7 +590,7 @@ setTimeout(() => { toast.style.animation = 'fadeOut 0.3s forwards'; setTimeout((
 document.getElementById('excelFile').addEventListener('change', function(e) { document.getElementById('fileNameDisplay').innerText = e.target.files[0] ? e.target.files[0].name : "Dosya Seçin"; });
 
 // ==========================================
-// 2. SUPABASE (SaaS) BAĞLANTISI VE KORUMALI BAŞLATMA
+// 2. SUPABASE (SaaS) BAĞLANTISI VE AUTH
 // ==========================================
 const SUPABASE_URL = 'https://hgvoduwiwwizxkdqfmtt.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhndm9kdXdpd3dpenhrZHFmbXR0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyMzAxODIsImV4cCI6MjA5MTgwNjE4Mn0.j1027SNJ3C6wHlpLjFQtcuRcP0XUcu7I-_zUO3_8l7w';
@@ -520,9 +599,10 @@ let supabaseClient = null;
 let currentUser = null;
 let currentCompanyId = null;
 let currentRole = 'user';
-let g_companyPlan = 'pusula';
-let g_companyLimit = 100;
+let g_companyPlan = 'demo';
+let g_companyLimit = 20;
 let g_usedTonnage = 0;
+let g_regType = 'new'; // 'new' veya 'join'
 
 let globalDxfEntities = [];
 let g_parts = []; let g_unitWeight = 0; let g_selectedLen = 0; let g_baseWasteTon = 0; let g_netProjectWeightKg = 0; let lastSimData = null; let g_customStocksInput = [];
@@ -539,18 +619,12 @@ if (session) {
 await fetchSaaSDataAndInit(session.user);
 } else {
 document.getElementById('authView').style.display = 'flex';
-document.getElementById('dashboardView').style.display = 'none';
-document.getElementById('appView').style.display = 'none';
 }
 } else {
 document.getElementById('authView').style.display = 'flex';
-document.getElementById('dashboardView').style.display = 'none';
-document.getElementById('appView').style.display = 'none';
 }
 } catch(err) {
 document.getElementById('authView').style.display = 'flex';
-document.getElementById('dashboardView').style.display = 'none';
-document.getElementById('appView').style.display = 'none';
 } finally {
 document.getElementById('hybridLoader').style.display = 'none';
 }
@@ -563,6 +637,22 @@ document.getElementById('registerForm').style.display = 'block';
 } else {
 document.getElementById('registerForm').style.display = 'none';
 document.getElementById('loginForm').style.display = 'block';
+}
+};
+
+window.setRegType = function(type) {
+g_regType = type;
+document.getElementById('btnRegTypeNew').classList.remove('active');
+document.getElementById('btnRegTypeJoin').classList.remove('active');
+
+if(type === 'new') {
+document.getElementById('btnRegTypeNew').classList.add('active');
+document.getElementById('regCompanyName').style.display = 'block';
+document.getElementById('regInviteCode').style.display = 'none';
+} else {
+document.getElementById('btnRegTypeJoin').classList.add('active');
+document.getElementById('regCompanyName').style.display = 'none';
+document.getElementById('regInviteCode').style.display = 'block';
 }
 };
 
@@ -591,14 +681,17 @@ document.getElementById('dashWelcomeText').innerText = `Hoş Geldiniz, ${company
 document.getElementById('dashDisplayUser').innerText = profileData.full_name;
 
 if(currentRole === 'admin') {
+document.getElementById('btnTeamAdmin').style.display = 'flex';
+// Kurucu Admin'in ID'si supabse'deki proje sahibiyse (ozanduman) Süper Admin açılabilir. Biz şimdilik 'admin'e ekliyoruz.
+// İleride buraya özel email kontrolü eklenebilir: if(user.email === 'ozanduman@gmail.com')
 document.getElementById('btnSuperAdmin').style.display = 'flex';
 }
 
 g_companyPlan = company.subscription_plan;
 document.getElementById('dashPlanName').innerText = g_companyPlan.toUpperCase();
 
-if(g_companyPlan === 'pusula') {
-g_companyLimit = 100;
+if(g_companyPlan === 'demo') {
+g_companyLimit = 20; // 20 Ton Demo Sınırı
 } else {
 g_companyLimit = 999999;
 document.getElementById('dashQuotaText').innerText = "Sınırsız Kullanım";
@@ -620,7 +713,7 @@ g_usedTonnage = totalEngTon;
 document.getElementById('dashTotalSavings').innerText = fmtInt(totalSavedMoney) + " ₺";
 document.getElementById('dashTotalSavedTons').innerText = fmt(totalEngTon) + " Tonluk analiz yapıldı";
 
-if(g_companyPlan === 'pusula') {
+if(g_companyPlan === 'demo') {
 document.getElementById('dashQuotaText').innerText = `${fmt(g_usedTonnage)} / ${g_companyLimit} Ton`;
 let pct = (g_usedTonnage / g_companyLimit) * 100;
 if(pct > 100) pct = 100;
@@ -640,8 +733,9 @@ showToast("Kullanıcı bilgileri alınırken hata oluştu.", "error");
 }
 
 window.openAppView = function() {
-if(g_companyPlan === 'pusula' && g_usedTonnage >= g_companyLimit) {
-showToast("Aylık ücretsiz analiz kotanızı (100 Ton) doldurdunuz. Lütfen paketinizi yükseltin.", "error");
+if(g_companyPlan === 'demo' && g_usedTonnage >= g_companyLimit) {
+showToast(`Demo kotanızı (${g_companyLimit} Ton) doldurdunuz. Lütfen paketinizi yükseltin.`, "error");
+openPricingModal();
 return;
 }
 document.getElementById('dashboardView').style.display = 'none';
@@ -659,12 +753,22 @@ if (!SUPABASE_KEY.startsWith('eyJ')) { showToast("HATA: API Anahtarı yanlış!"
 if(!supabaseClient) { showToast("Sunucu hazır değil. Lütfen 'Test Modu'nu kullanın.", "error"); return; }
 
 const fullName = document.getElementById('regFullName').value.trim();
-const companyName = document.getElementById('regCompanyName').value.trim();
 const email = document.getElementById('regEmail').value.trim();
 const password = document.getElementById('regPassword').value;
 
-if(!fullName || !companyName || !email || !password) { showToast("Lütfen tüm alanları doldurun.", "error"); return; }
+if(!fullName || !email || !password) { showToast("Lütfen ad, e-posta ve şifre alanlarını doldurun.", "error"); return; }
 if(password.length < 6) { showToast("Şifre en az 6 karakter olmalıdır.", "warning"); return; }
+
+let compName = "";
+let inviteCode = "";
+
+if(g_regType === 'new') {
+compName = document.getElementById('regCompanyName').value.trim();
+if(!compName) { showToast("Firma adını giriniz.", "error"); return; }
+} else {
+inviteCode = document.getElementById('regInviteCode').value.trim();
+if(!inviteCode) { showToast("Firma davet kodunu giriniz.", "error"); return; }
+}
 
 document.getElementById('loaderText').innerText = 'Kayıt Yapılıyor...';
 document.getElementById('hybridLoader').style.display = 'flex';
@@ -673,11 +777,22 @@ try {
 const { data: authData, error: authError } = await supabaseClient.auth.signUp({ email: email, password: password });
 if(authError) throw authError;
 
-const { data: companyData, error: companyError } = await supabaseClient.from('companies').insert([{ name: companyName, subscription_plan: 'pusula' }]).select();
-if (companyError) throw companyError;
+let targetCompanyId = "";
+let role = 'user';
 
-const newCompanyId = companyData[0].id;
-const { error: profileError } = await supabaseClient.from('profiles').insert([{ id: authData.user.id, company_id: newCompanyId, full_name: fullName, role: 'admin' }]);
+if(g_regType === 'new') {
+const { data: companyData, error: companyError } = await supabaseClient.from('companies').insert([{ name: compName, subscription_plan: 'demo' }]).select();
+if (companyError) throw companyError;
+targetCompanyId = companyData[0].id;
+role = 'admin'; // Kurucu yönetici olur
+} else {
+// Davet kodu aslında company_id'nin ta kendisi
+const { data: existComp, error: existErr } = await supabaseClient.from('companies').select('id').eq('id', inviteCode).single();
+if(existErr || !existComp) throw new Error("Geçersiz Davet Kodu. Firma bulunamadı.");
+targetCompanyId = existComp.id;
+}
+
+const { error: profileError } = await supabaseClient.from('profiles').insert([{ id: authData.user.id, company_id: targetCompanyId, full_name: fullName, role: role }]);
 if (profileError) throw profileError;
 
 showToast("Kayıt başarılı! Hoşgeldiniz.", "success");
@@ -691,7 +806,7 @@ document.getElementById('hybridLoader').style.display = 'none';
 
 window.doLogin = async function() {
 if (!SUPABASE_KEY.startsWith('eyJ')) { showToast("HATA: API Anahtarı yanlış!", "error"); return; }
-if(!supabaseClient) { showToast("Sunucu hazır değil. Lütfen 'Test Modu'nu kullanın.", "error"); return; }
+if(!supabaseClient) { showToast("Sunucu hazır değil.", "error"); return; }
 
 const email = document.getElementById('authEmail').value;
 const password = document.getElementById('authPassword').value;
@@ -703,7 +818,6 @@ document.getElementById('hybridLoader').style.display = 'flex';
 try {
 const { data: authData, error: authError } = await supabaseClient.auth.signInWithPassword({ email: email, password: password });
 if(authError) throw authError;
-
 showToast("Başarıyla giriş yapıldı.", "success");
 fetchSaaSDataAndInit(authData.user);
 } catch (err) {
@@ -721,6 +835,53 @@ document.getElementById('appView').style.display = 'none';
 document.getElementById('authView').style.display = 'flex';
 }
 
+// ----------------------------------------------------
+// YENİ: EKİP YÖNETİMİ (TEAM MODAL)
+// ----------------------------------------------------
+window.openTeamModal = async function() {
+if(!supabaseClient) return;
+document.getElementById('txtInviteCode').innerText = currentCompanyId;
+
+const t = document.querySelector('#teamTable tbody');
+t.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:20px;"><i class="fa-solid fa-spinner fa-spin"></i> Ekip Yükleniyor...</td></tr>';
+document.getElementById('teamModal').style.display = 'flex';
+
+try {
+// Sadece kendi firmamızdaki kullanıcıları çekiyoruz
+const { data: profiles, error } = await supabaseClient.from('profiles').select('*').eq('company_id', currentCompanyId);
+if (error) throw error;
+
+let rowsHtml = '';
+profiles.forEach(p => {
+let roleBadge = p.role === 'admin' ? '<span class="badge badge-sim" style="background:var(--secondary); color:white;">Yönetici</span>' : '<span class="badge badge-sim">Kullanıcı</span>';
+// E-posta bilgisi Supabase Profiles tablosunda normalde olmaz (auth'ta olur), o yüzden Full Name gösteriyoruz.
+rowsHtml += `<tr>
+<td style="text-align:left; font-weight:bold; color:var(--secondary);">${p.full_name}</td>
+<td style="text-align:left; color:var(--text-secondary);">Gizli</td>
+<td style="text-align:center;">${roleBadge}</td>
+</tr>`;
+});
+
+if(rowsHtml === '') t.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:20px;">Kayıtlı kimse yok.</td></tr>';
+else t.innerHTML = rowsHtml;
+
+} catch(err) {
+t.innerHTML = '<tr><td colspan="3" style="text-align:center;color:red;">Veriler yüklenirken hata oluştu.</td></tr>';
+}
+}
+
+window.copyInviteCode = function() {
+navigator.clipboard.writeText(currentCompanyId);
+showToast("Davet kodu kopyalandı! Ekibinize gönderebilirsiniz.", "success");
+}
+
+window.openPricingModal = function() {
+document.getElementById('pricingModal').style.display = 'flex';
+}
+
+// ----------------------------------------------------
+// SÜPER ADMIN (TÜM FİRMALAR RAPORU)
+// ----------------------------------------------------
 window.openSuperAdminModal = async function() {
 if(!supabaseClient) return;
 const t = document.querySelector('#superAdminTable tbody');
@@ -744,6 +905,7 @@ compSavings += Number(a.savings) || 0;
 });
 
 let planBadge = company.subscription_plan === 'kurumsal' ? '<span class="badge badge-sim" style="background:var(--secondary); color:white;">Kurumsal</span>' : '<span class="badge badge-sim">Pusula</span>';
+if(company.subscription_plan === 'demo') planBadge = '<span class="badge badge-sim">Demo</span>';
 
 rowsHtml += `<tr>
 <td style="text-align:left; font-weight:bold; color:var(--secondary);">${company.name}</td>
@@ -790,7 +952,6 @@ if (currentEntity.type === 'ATTRIB' && currentInsert) { currentInsert.attribs[cu
 globalDxfEntities.push(currentEntity);
 if(currentEntity.layer) uniqueLayers.add(currentEntity.layer);
 }
-
 if (val === 'SEQEND') { currentInsert = null; currentEntity = null; }
 else if (['TEXT', 'MTEXT'].includes(val)) { currentEntity = { type: val, text: "", layer: "", x1:0, y1:0, height:100 }; }
 else if (val === 'INSERT') { currentEntity = { type: val, layer: "", x1:0, y1:0, scaleX:1, scaleY:1, rotation:0, blockName:"", attribs:{} }; currentInsert = currentEntity; }
@@ -1003,8 +1164,9 @@ window.processFile = async function() {
 const fi = document.getElementById('excelFile'); const sl = getInputValue('stockLen'); g_unitWeight = parseFloat(document.getElementById('profileType').value); g_customStocksInput = window.getCustomStocksArray();
 if (!fi.files.length) { showToast("Lütfen Excel dosyası seçiniz.", "error"); return; } if (!sl || sl <= 0) { showToast("Geçerli standart stok boyu giriniz.", "error"); return; }
 
-if(g_companyPlan === 'pusula' && g_usedTonnage >= g_companyLimit) {
-showToast("Aylık kotanızı aştığınız için optimizasyon başlatılamıyor.", "error");
+if(g_companyPlan === 'demo' && g_usedTonnage >= g_companyLimit) {
+showToast(`Aylık kotanızı (${g_companyLimit} Ton) aştığınız için analiz başlatılamıyor. Lütfen paketinizi yükseltin.`, "error");
+openPricingModal();
 return;
 }
 
@@ -1121,7 +1283,7 @@ let tw = 0; let usedBins = bins.filter(b => b.parts.length > 0); usedBins.forEac
 }
 
 window.openGlobalDepoModal = async function() {
-if(!supabaseClient) { showToast("Sanal depo bulut bağlantısı gerektirir. (Test Modu)", "warning"); return; }
+if(!supabaseClient) { showToast("Sanal depo bulut bağlantısı gerektirir.", "warning"); return; }
 const t = document.querySelector('#globalDepoTable tbody'); t.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;"><i class="fa-solid fa-spinner fa-spin"></i> Depo Yükleniyor...</td></tr>'; document.getElementById('globalDepoModal').style.display = 'flex';
 const { data, error } = await supabaseClient.from('virtual_depots').select('*').eq('company_id', currentCompanyId).order('created_at', { ascending: false });
 if (error || !data || data.length === 0) { t.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;">Sanal deponuzda kayıt bulunmuyor.</td></tr>'; return; }
@@ -1172,13 +1334,24 @@ if (error) showToast("Hata: " + error.message, "error"); else { showToast("Arşi
 window.saveToArchive = async function() {
 if (!lastSimData) { showToast("Lütfen önce analizi tamamlayın.", "error"); return; }
 if (!supabaseClient) { showToast("Kaydetmek için bulut bağlantısı gereklidir.", "warning"); return; }
+
+// GÜNCEL KOTA KONTROLÜ
+let newTonnage = g_usedTonnage + lastSimData.engTon;
+if(g_companyPlan === 'demo' && newTonnage > g_companyLimit) {
+showToast(`Bu analizi kaydederseniz aylık ${g_companyLimit} Ton kotanızı aşıyorsunuz. Arşive kaydedilemedi.`, "error");
+return;
+}
+
 const btn = document.querySelector('.btn-archive'); const originalText = btn.innerHTML; document.getElementById('loaderText').innerText = 'Arşive Kaydediliyor...'; document.getElementById('hybridLoader').style.display = 'flex';
 try {
 if (lastSimData.financialSavings === undefined || lastSimData.financialSavings === 0) calculateFinance();
 const { error } = await supabaseClient.from('archives').insert([{ company_id: currentCompanyId, user_id: currentUser.id, mahal: lastSimData.mahal, profile_cap: lastSimData.profile, eng_ton: lastSimData.engTon, waste_ton: lastSimData.newTotalWasteTon, waste_pct: lastSimData.newWastePct, savings: lastSimData.financialSavings }]);
+if (error) { document.getElementById('hybridLoader').style.display = 'none'; showToast("Kaydedilemedi: " + error.message, "error"); }
+else {
+g_usedTonnage = newTonnage; // Kotayı anlık güncelle
 document.getElementById('hybridLoader').style.display = 'none';
-if (error) { showToast("Kaydedilemedi: " + error.message, "error"); }
-else { showToast("Başarıyla arşive kaydedildi.", "success"); btn.style.backgroundColor = "var(--success)"; btn.innerHTML = '<i class="fa-solid fa-check"></i> KAYDEDİLDİ'; setTimeout(() => { btn.style.backgroundColor = "#8e44ad"; btn.innerHTML = originalText; }, 3000); }
+showToast("Başarıyla arşive kaydedildi.", "success"); btn.style.backgroundColor = "var(--success)"; btn.innerHTML = '<i class="fa-solid fa-check"></i> KAYDEDİLDİ'; setTimeout(() => { btn.style.backgroundColor = "#8e44ad"; btn.innerHTML = originalText; }, 3000);
+}
 } catch (e) { document.getElementById('hybridLoader').style.display = 'none'; showToast("Bir hata oluştu: " + e.message, "error"); }
 }
 
