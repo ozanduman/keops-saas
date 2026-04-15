@@ -100,15 +100,17 @@ tr.selected-row{background-color:#fff8e1 !important;border-left:4px solid var(--
 .btn-pdf{background-color:#c0392b;} .btn-pdf:hover{background-color:#a93226;}
 .btn-finance{background-color:#2980b9;} .btn-finance:hover{background-color:#1f618d;}
 .btn-archive{background-color:#8e44ad;} .btn-archive:hover{background-color:#732d91;}
-.loader-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.9);z-index:9999;display:none;flex-direction:column;align-items:center;justify-content:center;backdrop-filter:blur(5px);}
+
+/* Z-INDEX DÜZELTMELERİ (Mesajların öne gelmesi için) */
+.loader-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.9);z-index:99999;display:none;flex-direction:column;align-items:center;justify-content:center;backdrop-filter:blur(5px);}
 .loader-content{background:white;padding:40px;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,0.1);text-align:center;border:1px solid #eee;}
 .spinner{width:50px;height:50px;border:4px solid #f3f3f3;border-top:4px solid var(--gold);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 20px auto;}
 @keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
-.admin-modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(44,62,80,0.8);z-index:5000;display:none;justify-content:center;align-items:center;backdrop-filter:blur(3px);}
+.admin-modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(44,62,80,0.8);z-index:50000;display:none;justify-content:center;align-items:center;backdrop-filter:blur(3px);}
 .admin-content{background:white;width:95%;max-width:1200px;max-height:90%;border-radius:12px;padding:30px;box-shadow:0 15px 50px rgba(0,0,0,0.2);overflow-y:auto;}
 .close-btn{float:right;font-size:24px;cursor:pointer;color:var(--text-secondary);transition:0.3s;}
 .close-btn:hover{color:var(--danger);}
-#toastContainer{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px;pointer-events:none;}
+#toastContainer{position:fixed;top:20px;right:20px;z-index:999999;display:flex;flex-direction:column;gap:10px;pointer-events:none;}
 .toast{pointer-events:auto;padding:15px 25px;background:white;border-left:5px solid var(--gold);border-radius:8px;box-shadow:0 10px 25px rgba(0,0,0,0.1);display:flex;align-items:center;gap:12px;font-weight:500;font-size:14px;animation:slideInRight 0.3s ease forwards;min-width:250px;color:var(--text-primary);}
 .toast.error{border-left-color:var(--danger);}
 .toast.success{border-left-color:var(--success);}
@@ -138,7 +140,6 @@ tr.selected-row{background-color:#fff8e1 !important;border-left:4px solid var(--
 
 <button class="auth-btn" onclick="doLogin()">Giriş Yap</button>
 <button class="auth-btn auth-btn-outline" onclick="doRegister()">Yeni Kayıt Ol</button>
-
 <button class="auth-btn auth-btn-test" onclick="bypassLogin()">Test Modu (Bulutsuz Gir)</button>
 
 <div style="margin-top:15px; font-size:12px; color:var(--text-secondary);">Şifrenizi mi unuttunuz? Lütfen yöneticinizle görüşün.</div>
@@ -386,14 +387,17 @@ window.onload = async function() {
 document.getElementById('hybridLoader').style.display = 'flex';
 
 try {
-if (window.supabase && SUPABASE_KEY.startsWith('eyJ')) {
+if (window.supabase) {
 supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-const { data: { session }, error } = await supabaseClient.auth.getSession();
 
-if (session) {
-const { data: profileData } = await supabaseClient.from('profiles').select('company_id').eq('id', session.user.id).single();
+// Eğer key yanlış formatlıysa (sb_ ile başlıyorsa) session ararken hata fırlatmaz ama arka planda sessizce çöker.
+// Bu yüzden try-catch ile korumaya aldık.
+const { data, error } = await supabaseClient.auth.getSession();
+
+if (data && data.session) {
+const { data: profileData } = await supabaseClient.from('profiles').select('company_id').eq('id', data.session.user.id).single();
 if(profileData) currentCompanyId = profileData.company_id;
-initSaaSApp(session.user);
+initSaaSApp(data.session.user);
 } else {
 document.getElementById('authView').style.display = 'flex';
 document.getElementById('appView').style.display = 'none';
@@ -401,6 +405,7 @@ document.getElementById('appView').style.display = 'none';
 } else {
 document.getElementById('authView').style.display = 'flex';
 document.getElementById('appView').style.display = 'none';
+showToast("Tarayıcı güvenliği nedeniyle bazı özellikler kısıtlandı. Test Modu ile giriş yapabilirsiniz.", "warning");
 }
 } catch(err) {
 document.getElementById('authView').style.display = 'flex';
@@ -419,7 +424,7 @@ showToast("Test modunda giriş yapıldı. Bulut kaydı pasiftir.", "warning");
 
 window.doRegister = async function() {
 if (!SUPABASE_KEY.startsWith('eyJ')) {
-showToast("HATA: API Anahtarı yanlış! Supabase'den 'eyJ' ile başlayan anon key'i alıp koda yapıştırmalısın.", "error");
+showToast("HATA: API Anahtarı yanlış! Lütfen Supabase'den aldığınız 'eyJ' ile başlayan anon key'i kodun en altındaki alana yapıştırın.", "error");
 return;
 }
 
@@ -449,7 +454,7 @@ showToast("Kayıt başarılı! Hoşgeldiniz.", "success");
 currentCompanyId = newCompanyId;
 initSaaSApp(authData.user);
 } catch(err) {
-showToast("Hata: " + err.message, "error");
+showToast("Kayıt Hatası: " + err.message, "error");
 } finally {
 document.getElementById('hybridLoader').style.display = 'none';
 }
@@ -457,7 +462,7 @@ document.getElementById('hybridLoader').style.display = 'none';
 
 window.doLogin = async function() {
 if (!SUPABASE_KEY.startsWith('eyJ')) {
-showToast("HATA: API Anahtarı yanlış! Supabase'den 'eyJ' ile başlayan anon key'i alıp koda yapıştırmalısın.", "error");
+showToast("HATA: API Anahtarı yanlış! Lütfen Supabase'den aldığınız 'eyJ' ile başlayan anon key'i kodun en altındaki alana yapıştırın.", "error");
 return;
 }
 
@@ -480,7 +485,7 @@ if(profileData) currentCompanyId = profileData.company_id;
 showToast("Başarıyla giriş yapıldı.", "success");
 initSaaSApp(authData.user);
 } catch (err) {
-showToast("Giriş Hatası: Bilgilerinizi kontrol edin.", "error");
+showToast("Giriş Hatası: E-posta veya şifre hatalı.", "error");
 } finally {
 document.getElementById('hybridLoader').style.display = 'none';
 }
@@ -862,7 +867,7 @@ let fwp = 0; if (g_netProjectWeightKg > 0) fwp = (twk / g_netProjectWeightKg) * 
 document.getElementById('lblEngTon').innerText = fmt(g_netProjectWeightKg / 1000) + " Ton"; document.getElementById('lblCurrentWaste').innerText = fmt(g_baseWasteTon) + " Ton"; document.getElementById('lblInitialPct').innerText = "%" + fmt(iwp); document.getElementById('lblSpecialTon').innerText = fmt(sw / 1000) + " Ton"; document.getElementById('lblSpecialWaste').innerText = fmt(swk / 1000) + " Ton"; document.getElementById('lblNewWaste').innerText = fmt(twk / 1000) + " Ton";
 const ep = document.getElementById('lblNewPct'); ep.innerText = "%" + fmt(fwp); ep.style.color = fwp > 3 ? "var(--danger)" : "var(--success)";
 document.getElementById('lblSavings').innerText = (sav >= 0 ? "+" : "") + fmt(sav / 1000) + " Ton";
-lastSimData = { standardParts: sp, specialDetails: sd, standardStockLen: g_selectedLen, cuttingPlan: cp, user: currentUser ? currentUser.email : 'Bilinmeyen', engTon: g_netProjectWeightKg / 1000, currentWasteTon: g_baseWasteTon, initialWastePct: iwp, specialTon: sw / 1000, specialWasteTon: swk / 1000, newTotalWasteTon: twk / 1000, newWastePct: fwp, savingsTon: sav / 1000, financialSavings: 0, profile: document.getElementById('profileType').value, mahal: document.getElementById('mahalInput').value || "-" };
+lastSimData = { standardParts: sp, specialDetails: sd, standardStockLen: g_selectedLen, cuttingPlan: cp, user: currentUser ? currentUser.email : 'Test Kullanıcısı', engTon: g_netProjectWeightKg / 1000, currentWasteTon: g_baseWasteTon, initialWastePct: iwp, specialTon: sw / 1000, specialWasteTon: swk / 1000, newTotalWasteTon: twk / 1000, newWastePct: fwp, savingsTon: sav / 1000, financialSavings: 0, profile: document.getElementById('profileType').value, mahal: document.getElementById('mahalInput').value || "-" };
 }
 
 function solveBestFitClient(p, sl, customStocks) {
