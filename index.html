@@ -171,7 +171,7 @@ tr.selected-row{background-color:#fff8e1 !important;border-left:4px solid var(--
 <i class="fa-solid fa-scale-unbalanced" style="color:var(--danger);"></i> Çizim ve Metraj Tablosu Kıyaslama
 </h2>
 <p style="font-size:13px; color:var(--text-secondary); margin-bottom: 20px;">
-Adım 1: DXF dosyasını yükleyin. Adım 2: Yazı ve Lejant katmanlarını seçin. Sistem blokları (ATTRIB) nokta atışı okuyarak ve yazıları gruplayarak metrajla hatasız kıyaslar.
+Adım 1: DXF dosyasını yükleyin. Adım 2: Yazı ve Lejant katmanlarını seçin. Sistem blokları otomatik patlatır, ATTRIB verilerini çözer ve metrajı Excel olarak sunar.
 </p>
 
 <div class="input-group" style="margin-bottom: 20px;" id="dxfUploadSection">
@@ -374,19 +374,118 @@ document.getElementById('excelFile').addEventListener('change', function(e) { do
 const SUPABASE_URL = 'https://hgvoduwiwwizxkdqfmtt.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_3cWel6iXjo9xYu0fpHVaaA_4kCY07ON';
 
-let supabase = null;
+let supabaseClient = null;
 let currentUser = null;
 let currentCompanyId = null;
 let globalDxfEntities = [];
 let g_parts = []; let g_unitWeight = 0; let g_selectedLen = 0; let g_baseWasteTon = 0; let g_netProjectWeightKg = 0; let lastSimData = null; let g_customStocksInput = [];
 
-// Test Modu Acil Çıkış Butonu
+window.onload = async function() {
+document.getElementById('hybridLoader').style.display = 'flex';
+
+try {
+if (window.supabase) {
+supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const { data: { session }, error } = await supabaseClient.auth.getSession();
+
+if (session) {
+const { data: profileData } = await supabaseClient.from('profiles').select('company_id').eq('id', session.user.id).single();
+if(profileData) currentCompanyId = profileData.company_id;
+initSaaSApp(session.user);
+} else {
+document.getElementById('authView').style.display = 'flex';
+document.getElementById('appView').style.display = 'none';
+}
+} else {
+showToast("İnternet bağlantısı zayıf veya kütüphane yüklenemedi.", "warning");
+}
+} catch(err) {
+console.error("Supabase Init Error:", err);
+showToast("Sunucuya bağlanılamadı. Lütfen Test Modu ile giriş yapın.", "error");
+} finally {
+document.getElementById('hybridLoader').style.display = 'none';
+}
+};
+
 window.bypassLogin = function() {
 document.getElementById('authView').style.display = 'none';
 document.getElementById('appView').style.display = 'block';
 document.getElementById('displayUser').innerText = "TEST MODU";
 showToast("Test modunda giriş yapıldı. Bulut kaydı pasiftir.", "warning");
 };
+
+window.doRegister = async function() {
+if(!supabaseClient) { showToast("Sunucu hazır değil. Lütfen 'Test Modu'nu kullanın.", "error"); return; }
+const email = document.getElementById('authEmail').value;
+const password = document.getElementById('authPassword').value;
+
+if(!email || !password) { showToast("E-posta ve şifre zorunludur.", "error"); return; }
+if(password.length < 6) { showToast("Şifre en az 6 karakter olmalıdır.", "warning"); return; }
+
+document.getElementById('loaderText').innerText = 'Kayıt Yapılıyor...';
+document.getElementById('hybridLoader').style.display = 'flex';
+
+try {
+const { data: authData, error: authError } = await supabaseClient.auth.signUp({ email: email, password: password });
+if(authError) throw authError;
+
+const { data: companyData, error: companyError } = await supabaseClient.from('companies').insert([{ name: email.split('@')[0].toUpperCase() + ' A.Ş.', subscription_plan: 'pusula' }]).select();
+if (companyError) throw companyError;
+
+const newCompanyId = companyData[0].id;
+const { error: profileError } = await supabaseClient.from('profiles').insert([{ id: authData.user.id, company_id: newCompanyId, full_name: email.split('@')[0] }]);
+if (profileError) throw profileError;
+
+showToast("Kayıt başarılı! Hoşgeldiniz.", "success");
+currentCompanyId = newCompanyId;
+initSaaSApp(authData.user);
+} catch(err) {
+showToast("Hata: " + err.message, "error");
+} finally {
+document.getElementById('hybridLoader').style.display = 'none';
+}
+}
+
+window.doLogin = async function() {
+if(!supabaseClient) { showToast("Sunucu hazır değil. Lütfen 'Test Modu'nu kullanın.", "error"); return; }
+const email = document.getElementById('authEmail').value;
+const password = document.getElementById('authPassword').value;
+if(!email || !password) { showToast("E-posta ve şifre zorunludur.", "error"); return; }
+
+document.getElementById('loaderText').innerText = 'Giriş Yapılıyor...';
+document.getElementById('hybridLoader').style.display = 'flex';
+
+try {
+const { data: authData, error: authError } = await supabaseClient.auth.signInWithPassword({ email: email, password: password });
+if(authError) throw authError;
+
+const { data: profileData } = await supabaseClient.from('profiles').select('company_id').eq('id', authData.user.id).single();
+if(profileData) currentCompanyId = profileData.company_id;
+
+showToast("Başarıyla giriş yapıldı.", "success");
+initSaaSApp(authData.user);
+} catch (err) {
+showToast("Giriş Hatası: Bilgilerinizi kontrol edin.", "error");
+} finally {
+document.getElementById('hybridLoader').style.display = 'none';
+}
+}
+
+window.doLogout = async function() {
+if(supabaseClient) await supabaseClient.auth.signOut();
+currentUser = null; currentCompanyId = null;
+document.getElementById('appView').style.display = 'none';
+document.getElementById('authView').style.display = 'flex';
+document.getElementById('authEmail').value = '';
+document.getElementById('authPassword').value = '';
+}
+
+function initSaaSApp(user) {
+currentUser = user;
+document.getElementById('authView').style.display = 'none';
+document.getElementById('appView').style.display = 'block';
+document.getElementById('displayUser').innerText = user.email.split('@')[0];
+}
 
 // ==========================================
 // 3. DXF VE ATTRIB BLOK OKUYUCU (YAPAY ZEKA)
@@ -541,7 +640,6 @@ if(legendArray.length === 0) throw new Error("Lejant katmanında veri bulunamad�
 // 2. YAZI (TEXT) VE BLOK (ATTRIB) KIYASLAMASI
 let physEntities = globalDxfEntities.filter(e => e.layer === selText);
 
-// Text Kümeleme
 let physTexts = physEntities.filter(e => e.type==="TEXT"||e.type==="MTEXT");
 let textClusters = []; let visited = new Set();
 for (let i = 0; i < physTexts.length; i++) {
@@ -579,13 +677,12 @@ matchedBlocks.forEach(ins => {
 let p = ins.attribs['POZ'] || ins.attribs['NO'] || ins.attribs['POZYAZISI'];
 if(p) {
 let cleanP = p.replace(/[\(\)\[\]]/g, '').trim();
-// POZYAZISI "50?16/40" gibi bir şeyse içinden kopar
 if(cleanP === pUp || isSamePoz(cleanP, pUp) || cleanP.includes(pUp)) {
 let aStr = ins.attribs['ADET'] || ins.attribs['PIECE'] || ins.attribs['POZYAZISI'];
 let bStr = ins.attribs['BOY'] || ins.attribs['L'] || ins.attribs['BOY A'];
 
 if (aStr) {
-let aMatch = aStr.match(/^(\d+)/); // İlk sayıyı adet kabul et
+let aMatch = aStr.match(/^(\d+)/);
 if(aMatch) totalYaziAdet += parseInt(aMatch[1]);
 }
 if(bStr) {
@@ -600,7 +697,7 @@ boyBulundu = true;
 }
 });
 
-// B) EĞER BLOKLARDAN BULUNAMADIYSA NORMAL YAZILARA (TEXT) BAK
+// B) BLOKLARDAN BULUNAMADIYSA NORMAL YAZILARA (TEXT) BAK
 if (totalYaziAdet === 0) {
 let pozRegex = new RegExp(`(^|\\s|[\\(\\[\\{])(P-?|POZ\\s*)?0*${pUp}(?=\\s|[\\)\\]\\}]|$)`, 'i');
 clusterStrings.forEach(fullString => {
@@ -773,6 +870,69 @@ sp.forEach(x => { let bi = -1, ml = Infinity; for (let i = 0; i < bins.length; i
 let tw = 0; let usedBins = bins.filter(b => b.parts.length > 0); usedBins.forEach(x => { tw += (x.capacity - x.used); }); return { bars: usedBins, waste: tw };
 }
 
+window.openGlobalDepoModal = async function() {
+if(!supabaseClient) { showToast("Sanal depo bulut bağlantısı gerektirir. (Test Modu)", "warning"); return; }
+const t = document.querySelector('#globalDepoTable tbody'); t.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;"><i class="fa-solid fa-spinner fa-spin"></i> Depo Yükleniyor...</td></tr>'; document.getElementById('globalDepoModal').style.display = 'flex';
+document.getElementById('globalDepoCompany').innerText = 'Firma Deposu';
+const { data, error } = await supabaseClient.from('virtual_depots').select('*').eq('company_id', currentCompanyId).order('created_at', { ascending: false });
+if (error || !data || data.length === 0) { t.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;">Sanal deponuzda kayıt bulunmuyor.</td></tr>'; return; }
+let rowsHtml = ''; data.forEach(r => { const d = new Date(r.created_at); const dateStr = d.toLocaleDateString('tr-TR'); let profileText = ""; document.querySelectorAll('#profileType option').forEach(opt => { if(opt.value === String(r.profile_cap)) profileText = opt.text; }); rowsHtml += `<tr><td style="text-align:left;">${dateStr}</td><td style="text-align:center;">${profileText}</td><td style="text-align:center;font-weight:bold;">${fmtInt(r.length_mm)} mm</td><td style="text-align:center;"><span class="badge badge-sim">${fmtInt(r.quantity)} Adet</span></td><td style="text-align:center;"><i class="fa-solid fa-trash-can action-icon" style="color:var(--danger);" onclick="deleteGlobalDepoItem('${r.id}')" title="Sil"></i></td></tr>`; }); t.innerHTML = rowsHtml;
+}
+
+window.addGlobalDepoItem = async function() {
+if(!supabaseClient) { showToast("Bu özellik bulut bağlantısı gerektirir.", "warning"); return; }
+let p = document.getElementById('addDepoProfile').value; let l = document.getElementById('addDepoLen').value.replace(/\./g, ''); let q = document.getElementById('addDepoQty').value.replace(/\./g, '');
+if(!l || !q) { showToast("Lütfen boy ve adet giriniz.", "error"); return; }
+document.getElementById('addDepoLen').value = ''; document.getElementById('addDepoQty').value = ''; document.querySelector('#globalDepoTable tbody').innerHTML = '<tr><td colspan="5" style="text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Ekleniyor...</td></tr>';
+const { error } = await supabaseClient.from('virtual_depots').insert([{ company_id: currentCompanyId, profile_cap: p, length_mm: parseInt(l), quantity: parseInt(q) }]);
+if (error) showToast("Hata: " + error.message, "error"); else { showToast("Depoya başarıyla eklendi.", "success"); openGlobalDepoModal(); }
+}
+
+window.deleteGlobalDepoItem = async function(uuid) {
+if(!supabaseClient) return;
+document.querySelector('#globalDepoTable tbody').innerHTML = '<tr><td colspan="5" style="text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Siliniyor...</td></tr>';
+const { error } = await supabaseClient.from('virtual_depots').delete().eq('id', uuid);
+if (error) showToast("Hata: " + error.message, "error"); else { showToast("Kayıt depodan silindi.", "success"); openGlobalDepoModal(); }
+}
+
+window.openSanalDepoModal = async function() {
+if(!supabaseClient) { showToast("Bu özellik bulut bağlantısı gerektirir.", "warning"); return; }
+const profile = document.getElementById('profileType').value; const t = document.querySelector('#depoTable tbody'); t.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:20px;"><i class="fa-solid fa-spinner fa-spin"></i> Depo aranıyor...</td></tr>'; document.getElementById('sanalDepoModal').style.display = 'flex';
+const { data, error } = await supabaseClient.from('virtual_depots').select('*').eq('company_id', currentCompanyId).eq('profile_cap', profile);
+if (error || !data || data.length === 0) { t.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:20px;">Bu çapta (Ø) sanal deponuzda fire bulunmamaktadır.</td></tr>'; return; }
+let rowsHtml = ''; data.forEach(r => { rowsHtml += `<tr><td style="text-align:left;font-weight:bold;color:var(--secondary);">${fmtInt(r.length_mm)} mm</td><td style="text-align:center;"><span class="badge badge-sim">${fmtInt(r.quantity)} Adet</span></td><td style="text-align:center;"><input type="number" class="depo-transfer-qty" data-len="${r.length_mm}" max="${r.quantity}" min="0" placeholder="0" style="width:70px;padding:5px;text-align:center;border:1px solid #ccc;border-radius:4px;"></td></tr>`; }); t.innerHTML = rowsHtml;
+}
+
+window.transferFromDepo = function() { const inputs = document.querySelectorAll('.depo-transfer-qty'); let added = 0; inputs.forEach(inp => { let qty = parseInt(inp.value); if(qty > 0) { let len = inp.getAttribute('data-len'); addCustomStockRowWithValue(len, qty); added++; } }); if(added > 0) { document.getElementById('sanalDepoModal').style.display='none'; showToast("Parçalar aktarıldı.", "success"); } else { showToast("Lütfen miktar giriniz.", "error"); } }
+
+window.openArchiveModal = async function() {
+if(!supabaseClient) { showToast("Bu özellik bulut bağlantısı gerektirir.", "warning"); return; }
+const t = document.querySelector('#archiveTable tbody'); t.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;"><i class="fa-solid fa-spinner fa-spin"></i> Yükleniyor...</td></tr>'; document.getElementById('archiveModal').style.display = 'flex';
+const { data, error } = await supabaseClient.from('archives').select('*').eq('company_id', currentCompanyId).order('created_at', { ascending: false });
+if (error || !data || data.length === 0) { t.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;">Arşiviniz boş.</td></tr>'; return; }
+let rowsHtml = ''; data.forEach(r => { const d = new Date(r.created_at); const dateStr = d.toLocaleDateString('tr-TR') + " " + d.toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'}); let savBadge = r.savings > 0 ? `<span class="badge badge-good">+${fmtInt(Math.round(r.savings))} ₺</span>` : (r.savings < 0 ? `<span class="badge badge-bad">${fmtInt(Math.round(r.savings))} ₺</span>` : '-'); let profileText = ""; document.querySelectorAll('#profileType option').forEach(opt => { if(opt.value === String(r.profile_cap)) profileText = opt.text; }); if(!profileText) profileText = "Bilinmiyor"; rowsHtml += `<tr><td style="text-align:left;font-size:12px;">${dateStr}</td><td style="text-align:center;font-weight:600;">${profileText}</td><td style="text-align:center;">${r.mahal || '-'}</td><td style="text-align:center;">${fmt(r.eng_ton)} T</td><td style="text-align:center;">${fmt(r.waste_ton)} T</td><td style="text-align:center;">%${fmt(r.waste_pct)}</td><td style="text-align:center;">${savBadge}</td><td style="text-align:center;"><i class="fa-solid fa-trash-can action-icon" style="color:var(--text-secondary);margin-left:15px;" onclick="deleteArchiveItem('${r.id}')" title="Sil"></i></td></tr>`; }); t.innerHTML = rowsHtml;
+}
+
+window.deleteArchiveItem = async function(uuid) {
+if(!supabaseClient) return;
+document.querySelector('#archiveTable tbody').innerHTML = '<tr><td colspan="8" style="text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Siliniyor...</td></tr>';
+const { error } = await supabaseClient.from('archives').delete().eq('id', uuid);
+if (error) showToast("Hata: " + error.message, "error"); else { showToast("Arşiv silindi.", "success"); openArchiveModal(); }
+}
+
+window.saveToArchive = async function() {
+if (!lastSimData) { showToast("Lütfen önce analizi tamamlayın.", "error"); return; }
+if (!supabaseClient) { showToast("Kaydetmek için bulut bağlantısı gereklidir.", "warning"); return; }
+const btn = document.querySelector('.btn-archive'); const originalText = btn.innerHTML; document.getElementById('loaderText').innerText = 'Arşive Kaydediliyor...'; document.getElementById('hybridLoader').style.display = 'flex';
+try {
+if (lastSimData.financialSavings === undefined || lastSimData.financialSavings === 0) calculateFinance();
+const { error } = await supabaseClient.from('archives').insert([{ company_id: currentCompanyId, user_id: currentUser.id, mahal: lastSimData.mahal, profile_cap: lastSimData.profile, eng_ton: lastSimData.engTon, waste_ton: lastSimData.newTotalWasteTon, waste_pct: lastSimData.newWastePct, savings: lastSimData.financialSavings }]);
+document.getElementById('hybridLoader').style.display = 'none';
+if (error) { showToast("Kaydedilemedi: " + error.message, "error"); }
+else { showToast("Başarıyla arşive kaydedildi.", "success"); btn.style.backgroundColor = "var(--success)"; btn.innerHTML = '<i class="fa-solid fa-check"></i> KAYDEDİLDİ'; setTimeout(() => { btn.style.backgroundColor = "#8e44ad"; btn.innerHTML = originalText; }, 3000); }
+} catch (e) { document.getElementById('hybridLoader').style.display = 'none'; showToast("Bir hata oluştu: " + e.message, "error"); }
+}
+
 // ----------------------------------------------------
 // 5. EXCEL VE PDF ÇIKTI İŞLEMLERİ
 // ----------------------------------------------------
@@ -797,4 +957,3 @@ window.getCustomStocksArray = function() { let customArr = []; const rows = docu
 </script>
 </body>
 </html>
-
